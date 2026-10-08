@@ -37,7 +37,15 @@ The admin tool is part of the full product and is built in slices (`../docs/09_A
 
 ## Current state
 
-Bootstrapped: root layout with the TanStack Query provider and a plain placeholder page. No admin features exist yet. The early admin slice is needed before the Core Loop Checkpoint, and moderation before Phase 11. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
+The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`) is built over the API's admin routes (CR.3–CR.4):
+
+- `src/lib/api.ts`: `createAdminApi` (the only way to data; every answer parsed with `src/lib/schemas.ts`; `AdminApiError` with `kind` `http|network|invalid_response`, `status`, `code`; a 401 on a signed-in request signs out).
+- `src/lib/session.tsx`: `AdminSessionProvider` keeps the admin session in this tab's `sessionStorage` (never localStorage) through `useSyncExternalStore` (server snapshot `undefined`, so no hydration mismatch); `useAdminSession`, `useAdminApi`. `NEXT_PUBLIC_API_URL` (see `.env.example`); the API must list this origin in `CORS_ORIGINS`.
+- Screens (`src/features/`, routes in `src/app/(admin)/` behind `AdminShell`, and `src/app/sign-in/`): sign-in; dashboard (plain counts); users (search by email, name, or id; pages); user detail (profile, lifetime, the tree as numbers and a stage label, rewards, checkpoint activity, sessions with why each counted; notes hidden behind "Reveal note" with a logged reason; suspend, reactivate, and delete for admins only, each confirmed with a reason, deletion also by typing the email); configuration (read only); audit log (admins only); Core Loop Checkpoint (cohort by join dates, counts never percentages).
+- `AdminShell` hides links a role cannot use and sends a signed-out visitor to `/sign-in`; `ConfirmDialog` holds every confirmation.
+- Tests: `src/__tests__/admin-app.test.tsx` and `src/lib/__tests__/api.test.ts`, over a fake admin API at the network boundary (`src/test/fake-api.ts`), `next/navigation` mocked; plain DOM assertions (no jest-dom).
+
+Moderation (reports) arrives with Phase 5 (Social), content management with Phase 6. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 
