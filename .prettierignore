@@ -8,3 +8,6 @@ package-lock.json
 
 # Markdown follows the workspace docs style; not formatted by Prettier.
 *.md
+
+# CR.X contract: byte-identical with focus-forest-api test/cr/.
+src/test/admin-contract.json
