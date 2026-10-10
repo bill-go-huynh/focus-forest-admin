@@ -21,6 +21,7 @@ import {
   plural,
   speciesLabel,
   stageLabel,
+  statusLabel,
 } from '../../lib/format';
 import type { SessionRow, UserDetail as Detail, UserRow } from '../../lib/schemas';
 import { useAdminApi } from '../../lib/session';
@@ -66,7 +67,7 @@ export function UserDetail() {
       <PageTitle>{profile.email}</PageTitle>
       <dl className="grid max-w-3xl grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm">
         <dt>Status</dt>
-        <dd>{profile.status === 'active' ? 'Active' : 'Suspended'}</dd>
+        <dd>{statusLabel(profile.status)}</dd>
         <dt>Name</dt>
         <dd>{profile.displayName ?? '—'}</dd>
         <dt>Bio</dt>

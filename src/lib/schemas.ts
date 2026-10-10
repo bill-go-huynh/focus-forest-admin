@@ -10,7 +10,7 @@ const instant = z.iso.datetime();
 const localDate = z.iso.date();
 const count = z.number().int().nonnegative();
 
-export const adminRoleSchema = z.enum(['admin', 'support']);
+export const adminRoleSchema = z.enum(['admin', 'support', 'moderator']);
 export type AdminRole = z.infer<typeof adminRoleSchema>;
 
 export const adminIdentitySchema = z.object({
@@ -43,7 +43,7 @@ export const userRowSchema = z.object({
   id: z.string(),
   email: z.string(),
   displayName: z.string().nullable(),
-  status: z.enum(['active', 'suspended']),
+  status: z.enum(['active', 'suspended', 'banned']),
   joinedAt: instant,
   timezone: z.string().nullable(),
 });

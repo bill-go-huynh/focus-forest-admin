@@ -37,3 +37,8 @@ export const instantLabel = (iso: string) => `${iso.slice(0, 16).replace('T', ' 
 export function valueLabel(value: unknown): string {
   return typeof value === 'string' ? value : JSON.stringify(value);
 }
+
+/** An app account's status, as staff read it. */
+export function statusLabel(status: 'active' | 'suspended' | 'banned'): string {
+  return { active: 'Active', suspended: 'Suspended', banned: 'Banned' }[status];
+}

@@ -72,9 +72,17 @@ describe('CR.X admin contract: the captured admin answers parse with the web app
         unread(contract[name], SCHEMAS[name].parse(contract[name])),
       ]),
     );
+    // A5.3 added usernames, moderation counts, and open reports; the web app reads them from D5.1
+    // (moderation), so they are the known drift until then.
     expect(
       Object.fromEntries(Object.entries(ignored).filter(([, keys]) => keys.length > 0)),
-    ).toEqual({});
+    ).toEqual({
+      dashboard: ['.openReports'],
+      reactivated: ['.username'],
+      suspended: ['.username'],
+      user: ['.profile.username', '.moderation'],
+      users: ['.items[].username'],
+    });
   });
 
   it('reads refusals by status and code', () => {

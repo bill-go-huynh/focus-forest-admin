@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState, type FormEvent } from 'react';
 
 import { Button, Cell, ErrorMessage, Loading, PageTitle, Table } from '../../components/ui';
-import { instantLabel } from '../../lib/format';
+import { instantLabel, statusLabel } from '../../lib/format';
 import { useAdminApi } from '../../lib/session';
 
 /** Users (docs/09): search by email, name, or id; newest first; page by page. */
@@ -57,7 +57,7 @@ export function UserSearch() {
                   </Link>
                 </Cell>
                 <Cell>{user.displayName ?? '—'}</Cell>
-                <Cell>{user.status === 'active' ? 'Active' : 'Suspended'}</Cell>
+                <Cell>{statusLabel(user.status)}</Cell>
                 <Cell>{instantLabel(user.joinedAt)}</Cell>
                 <Cell>{user.timezone ?? '—'}</Cell>
               </tr>
