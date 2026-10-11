@@ -14,7 +14,7 @@ export const navigation = {
   pathname: '/',
 };
 
-export function session(role: 'admin' | 'support' = 'admin'): AdminSession {
+export function session(role: 'admin' | 'support' | 'moderator' = 'admin'): AdminSession {
   return {
     accessToken: `${role}-token`,
     accessTokenExpiresAt: '2026-10-08T12:30:00.000Z',

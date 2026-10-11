@@ -48,7 +48,7 @@ export function UserSearch() {
         <p className="text-sm">{query ? `No users match “${query}”.` : 'No users yet.'}</p>
       ) : (
         <>
-          <Table head={['Email', 'Name', 'Status', 'Joined', 'Time zone']}>
+          <Table head={['Email', 'Username', 'Name', 'Status', 'Joined', 'Time zone']}>
             {rows.map((user) => (
               <tr key={user.id}>
                 <Cell>
@@ -56,6 +56,7 @@ export function UserSearch() {
                     {user.email}
                   </Link>
                 </Cell>
+                <Cell>{user.username ? `@${user.username}` : '—'}</Cell>
                 <Cell>{user.displayName ?? '—'}</Cell>
                 <Cell>{statusLabel(user.status)}</Cell>
                 <Cell>{instantLabel(user.joinedAt)}</Cell>

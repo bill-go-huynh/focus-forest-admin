@@ -41,6 +41,8 @@ export function UserDetail() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const isAdmin = useHasRole('admin');
+  // Moderators never read notes (A5.3, least privilege).
+  const canRevealNotes = useHasRole('admin', 'support');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notes, setNotes] = useState<Record<string, string | null>>({});
   const user = useQuery({ queryKey: ['user', id], queryFn: () => api.user(id) });
@@ -68,6 +70,8 @@ export function UserDetail() {
       <dl className="grid max-w-3xl grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm">
         <dt>Status</dt>
         <dd>{statusLabel(profile.status)}</dd>
+        <dt>Username</dt>
+        <dd>{profile.username ? `@${profile.username}` : '—'}</dd>
         <dt>Name</dt>
         <dd>{profile.displayName ?? '—'}</dd>
         <dt>Bio</dt>
@@ -106,6 +110,18 @@ export function UserDetail() {
         </dd>
       </dl>
 
+      <SectionTitle>Moderation</SectionTitle>
+      <dl className="grid max-w-3xl grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm">
+        <dt>Reports</dt>
+        <dd>{`${plural(detail.moderation.reportsAbout, 'report')} about this user, ${detail.moderation.openReportsAbout} open`}</dd>
+        <dt>Filed</dt>
+        <dd>{`${plural(detail.moderation.reportsFiled, 'report')} filed`}</dd>
+        <dt>Warnings</dt>
+        <dd>{plural(detail.moderation.warnings, 'warning')}</dd>
+        <dt>Blocks</dt>
+        <dd>{`Blocks ${plural(detail.moderation.blocking, 'user')} · blocked by ${plural(detail.moderation.blockedBy, 'user')}`}</dd>
+      </dl>
+
       <SectionTitle>Checkpoint activity</SectionTitle>
       <Checkpoint metrics={detail.checkpoint} />
 
@@ -129,6 +145,8 @@ export function UserDetail() {
                   <Cell>
                     {!session.hasNote ? (
                       '—'
+                    ) : !canRevealNotes ? (
+                      'Hidden'
                     ) : session.id in notes ? (
                       <q>{notes[session.id] ?? ''}</q>
                     ) : (

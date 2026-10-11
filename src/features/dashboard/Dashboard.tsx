@@ -11,6 +11,7 @@ const STATS: { key: Exclude<keyof DashboardData, 'generatedAt'>; label: string }
   { key: 'activeUsersLast7Days', label: 'Active users, last 7 days' },
   { key: 'sessionsToday', label: 'Sessions today' },
   { key: 'discardedToday', label: 'Discarded today' },
+  { key: 'openReports', label: 'Open reports' },
 ];
 
 /** A few plain operational counts (docs/09 → Dashboard). UTC days. */

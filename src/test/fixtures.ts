@@ -3,12 +3,14 @@ export const DASHBOARD = {
   sessionsToday: 17,
   discardedToday: 2,
   activeUsersLast7Days: 9,
+  openReports: 4,
   generatedAt: '2026-10-08T12:00:00.000Z',
 };
 
 export const ADA_ROW = {
   id: '11111111-1111-4111-8111-111111111111',
   email: 'ada@example.com',
+  username: 'ada' as string | null,
   displayName: 'Ada L',
   status: 'active' as const,
   joinedAt: '2026-09-01T08:00:00.000Z',
@@ -48,6 +50,14 @@ export const ADA_DETAIL = {
   rewards: { badges: 5, species: 3, cosmetics: 1 },
   shareUsageData: true,
   checkpoint: METRICS,
+  moderation: {
+    reportsAbout: 3,
+    openReportsAbout: 2,
+    reportsFiled: 1,
+    warnings: 1,
+    blocking: 0,
+    blockedBy: 2,
+  },
 };
 
 export const SESSIONS = {
@@ -124,4 +134,54 @@ export const CHECKPOINT = {
     medianFirstMonthActiveDays: 4,
   },
   users: [{ ...METRICS, email: 'ada@example.com' }],
+};
+
+/** D5.1 moderation and rooms. */
+export const REX = {
+  id: '55555555-5555-4555-8555-555555555555',
+  email: 'rex@example.com',
+  username: 'rex',
+  displayName: null,
+};
+
+export const REPORT = {
+  id: '66666666-6666-4666-8666-666666666666',
+  category: 'bio' as const,
+  status: 'open' as const,
+  details: 'Rude words in the bio.',
+  createdAt: '2026-10-08T09:00:00.000Z',
+  reporter: REX,
+  target: {
+    id: ADA_ROW.id,
+    email: ADA_ROW.email,
+    username: 'ada',
+    displayName: ADA_ROW.displayName,
+    status: 'active' as const,
+    openReports: 2,
+  },
+};
+
+export const REPORT_DETAIL = {
+  ...REPORT,
+  targetProfile: {
+    username: 'ada',
+    displayName: ADA_ROW.displayName,
+    bio: 'Thesis season.',
+    avatarUrl: null,
+  },
+  blocks: { reporterBlocksTarget: true, targetBlocksReporter: false },
+  targetHistory: { reports: 3, warnings: 1, status: 'active' as const },
+  reviewedBy: null,
+  resolution: null,
+};
+
+export const ROOM = {
+  id: '77777777-7777-4777-8777-777777777777',
+  name: 'Morning study',
+  topic: 'Exams',
+  visibility: 'public' as const,
+  phase: 'focusing' as const,
+  participants: 3,
+  host: { id: REX.id, email: REX.email, username: 'rex' },
+  createdAt: '2026-10-08T08:00:00.000Z',
 };

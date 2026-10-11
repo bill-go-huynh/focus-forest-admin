@@ -2,16 +2,22 @@ import type { z } from 'zod';
 
 import {
   adminIdentitySchema,
+  adminRoomSchema,
   auditPageSchema,
   checkpointSchema,
   configViewSchema,
   dashboardSchema,
+  reportDetailSchema,
+  reportPageSchema,
   revealedNoteSchema,
+  roomListSchema,
   sessionPageSchema,
   signInSchema,
   userDetailSchema,
   userPageSchema,
   userRowSchema,
+  type ModerationAction,
+  type ReportStatus,
 } from './schemas';
 
 export type AdminApiErrorKind = 'http' | 'network' | 'invalid_response';
@@ -128,6 +134,26 @@ export function createAdminApi(options: AdminApiOptions) {
     auditLog: (cursor?: string) => request(`/admin/audit-log${query({ cursor })}`, auditPageSchema),
     checkpoint: (from: string, to: string) =>
       request(`/admin/analytics/checkpoint${query({ from, to })}`, checkpointSchema),
+    // D5.1: reports and moderation (admins and moderators).
+    reports: (status?: ReportStatus, cursor?: string) =>
+      request(`/admin/reports${query({ status, cursor })}`, reportPageSchema),
+    report: (id: string) => request(`/admin/reports/${id}`, reportDetailSchema),
+    reviewReport: (id: string) =>
+      request(`/admin/reports/${id}/review`, reportDetailSchema, { method: 'POST', body: {} }),
+    resolveReport: (id: string, action: ModerationAction, reason: string, message?: string) =>
+      request(`/admin/reports/${id}/resolve`, reportDetailSchema, {
+        method: 'POST',
+        body: { action, reason, ...(message !== undefined && { message }) },
+      }),
+    dismissReport: (id: string, reason: string) =>
+      request(`/admin/reports/${id}/dismiss`, reportDetailSchema, {
+        method: 'POST',
+        body: { reason },
+      }),
+    // D5.1: focus rooms.
+    rooms: () => request('/admin/rooms', roomListSchema),
+    closeRoom: (id: string, reason: string) =>
+      request(`/admin/rooms/${id}/close`, adminRoomSchema, { method: 'POST', body: { reason } }),
   };
 }
 

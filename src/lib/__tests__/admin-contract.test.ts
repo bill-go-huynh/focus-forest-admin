@@ -6,8 +6,12 @@ import {
   auditPageSchema,
   checkpointSchema,
   configViewSchema,
+  adminRoomSchema,
   dashboardSchema,
+  reportDetailSchema,
+  reportPageSchema,
   revealedNoteSchema,
+  roomListSchema,
   sessionPageSchema,
   signInSchema,
   userDetailSchema,
@@ -23,7 +27,13 @@ import {
  */
 
 type Name = keyof typeof contract;
-const ERRORS = ['suspendForbidden', 'deleteMismatch', 'userNotFound'] as const;
+const ERRORS = [
+  'suspendForbidden',
+  'deleteMismatch',
+  'userNotFound',
+  'warningMessageRequired',
+  'reportClosed',
+] as const;
 type Answer = Exclude<Name, (typeof ERRORS)[number]>;
 
 const SCHEMAS: Record<Answer, z.ZodType> = {
@@ -39,6 +49,13 @@ const SCHEMAS: Record<Answer, z.ZodType> = {
   config: configViewSchema,
   checkpoint: checkpointSchema,
   auditLog: auditPageSchema,
+  reports: reportPageSchema,
+  report: reportDetailSchema,
+  reviewed: reportDetailSchema,
+  resolved: reportDetailSchema,
+  dismissed: reportDetailSchema,
+  rooms: roomListSchema,
+  roomClosed: adminRoomSchema,
 };
 
 function unread(input: unknown, parsed: unknown, path = ''): string[] {
@@ -72,17 +89,10 @@ describe('CR.X admin contract: the captured admin answers parse with the web app
         unread(contract[name], SCHEMAS[name].parse(contract[name])),
       ]),
     );
-    // A5.3 added usernames, moderation counts, and open reports; the web app reads them from D5.1
-    // (moderation), so they are the known drift until then.
+    // D5.1 reads what A5.3 added (usernames, moderation counts, open reports): no drift.
     expect(
       Object.fromEntries(Object.entries(ignored).filter(([, keys]) => keys.length > 0)),
-    ).toEqual({
-      dashboard: ['.openReports'],
-      reactivated: ['.username'],
-      suspended: ['.username'],
-      user: ['.profile.username', '.moderation'],
-      users: ['.items[].username'],
-    });
+    ).toEqual({});
   });
 
   it('reads refusals by status and code', () => {
@@ -90,6 +100,8 @@ describe('CR.X admin contract: the captured admin answers parse with the web app
       ['suspendForbidden', 403, 'admin_role_forbidden'],
       ['deleteMismatch', 422, 'confirm_email_mismatch'],
       ['userNotFound', 404, 'user_not_found'],
+      ['warningMessageRequired', 422, 'warning_message_required'],
+      ['reportClosed', 409, 'report_closed'],
     ]);
   });
 
@@ -112,5 +124,19 @@ describe('CR.X admin contract: the captured admin answers parse with the web app
     const checkpoint = checkpointSchema.parse(contract.checkpoint);
     expect(checkpoint.cohort.users).toBe(1);
     expect(checkpoint.users[0]?.email).toBe('tester@example.com');
+    // D5.1: the moderation lifecycle and the rooms the screens show.
+    expect(reportPageSchema.parse(contract.reports).items.map((r) => r.status)).toEqual([
+      'open',
+      'open',
+    ]);
+    expect(reportDetailSchema.parse(contract.reviewed).status).toBe('in_review');
+    expect(reportDetailSchema.parse(contract.resolved).resolution).toMatchObject({
+      action: 'warn',
+    });
+    expect(reportDetailSchema.parse(contract.dismissed).resolution).toMatchObject({
+      action: null,
+    });
+    expect(roomListSchema.parse(contract.rooms).items.map((r) => r.phase)).toEqual(['lobby']);
+    expect(adminRoomSchema.parse(contract.roomClosed).phase).toBe('closed');
   });
 });

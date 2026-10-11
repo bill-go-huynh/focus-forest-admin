@@ -46,7 +46,14 @@ The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`
 - **Contract parity (CR.X):** `src/test/admin-contract.json` is the API's real admin answers, captured by focus-forest-api `test/cr/checkpoint-journey.int-spec.ts` and kept **byte-identical** here (Prettier ignores it; regenerate there with `CR_UPDATE_CONTRACT=1`, copy it, compare `shasum -a 256`). `src/lib/__tests__/admin-contract.test.ts` parses every answer with `src/lib/schemas.ts`, lists exactly the fields the app does not read (none), and reads refusals by status and code.
 - Tests: `src/__tests__/admin-app.test.tsx` and `src/lib/__tests__/api.test.ts`, over a fake admin API at the network boundary (`src/test/fake-api.ts`), `next/navigation` mocked; plain DOM assertions (no jest-dom).
 
-Moderation (reports) arrives with Phase 5 (Social), content management with Phase 6. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
+**D5.1 moderation and rooms** (Phase 5, docs/09 → Reports and moderation, Focus rooms):
+- Roles: `moderator` sees Dashboard, Users, Reports, and Rooms; admins also see Reports and Rooms; support sees neither. Moderators never get "Reveal note" (the cell says "Hidden") nor account actions.
+- `src/features/moderation/`: `ReportsQueue` (`/reports`: waiting by default, status filter, pages) and `ReportDetail` (`/reports/[id]`: the report, the reported profile as it is now, blocks between the two, history; "Start review"; resolve with an action, a message required for a warning, and a confirmed reason; dismiss with a confirmed reason; a closed report shows its decision and no actions).
+- `src/features/rooms/RoomsList` (`/rooms`): active rooms with phase, host, and size; "Close room" with a confirmed reason.
+- The dashboard shows open reports; users show the username; user detail shows moderation counts and block relationships.
+- The admin contract also carries `reports`, `report`, `reviewed`, `resolved`, `dismissed`, `rooms`, `roomClosed`, and the refusals `warningMessageRequired` and `reportClosed`; no unread field remains.
+
+Content management arrives with Phase 6 (legacy Phase 19). See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

@@ -9,8 +9,11 @@ import type { AdminRole } from '../../lib/schemas';
 import { useAdminSession } from '../../lib/session';
 
 const LINKS: { href: string; label: string; roles: readonly AdminRole[] }[] = [
-  { href: '/', label: 'Dashboard', roles: ['admin', 'support'] },
-  { href: '/users', label: 'Users', roles: ['admin', 'support'] },
+  { href: '/', label: 'Dashboard', roles: ['admin', 'support', 'moderator'] },
+  { href: '/users', label: 'Users', roles: ['admin', 'support', 'moderator'] },
+  // D5.1 (docs/09 → Reports and moderation, Focus rooms): admins and moderators.
+  { href: '/reports', label: 'Reports', roles: ['admin', 'moderator'] },
+  { href: '/rooms', label: 'Rooms', roles: ['admin', 'moderator'] },
   { href: '/checkpoint', label: 'Checkpoint', roles: ['admin', 'support'] },
   { href: '/config', label: 'Configuration', roles: ['admin', 'support'] },
   { href: '/audit-log', label: 'Audit log', roles: ['admin'] },

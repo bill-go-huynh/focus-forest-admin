@@ -42,3 +42,46 @@ export function valueLabel(value: unknown): string {
 export function statusLabel(status: 'active' | 'suspended' | 'banned'): string {
   return { active: 'Active', suspended: 'Suspended', banned: 'Banned' }[status];
 }
+
+/** "ada@example.com (@ada)": who a person is, for staff. */
+export function personLabel(person: { email: string; username: string | null }): string {
+  return person.username ? `${person.email} (@${person.username})` : person.email;
+}
+
+const CATEGORIES: Record<string, string> = {
+  account: 'Account',
+  username: 'Username',
+  avatar: 'Avatar',
+  bio: 'Bio',
+  behavior: 'Behavior',
+};
+export const categoryLabel = (category: string) => CATEGORIES[category] ?? category;
+
+export function reportStatusLabel(status: 'open' | 'in_review' | 'resolved' | 'dismissed'): string {
+  return { open: 'Open', in_review: 'In review', resolved: 'Resolved', dismissed: 'Dismissed' }[
+    status
+  ];
+}
+
+export function actionLabel(
+  action: 'none' | 'warn' | 'reset_username' | 'reset_bio' | 'reset_avatar' | 'suspend' | 'ban',
+): string {
+  return {
+    none: 'No action',
+    warn: 'Warn the user',
+    reset_username: 'Reset the username',
+    reset_bio: 'Reset the bio',
+    reset_avatar: 'Reset the avatar',
+    suspend: 'Suspend the account',
+    ban: 'Ban the account',
+  }[action];
+}
+
+const PHASES: Record<string, string> = {
+  lobby: 'Lobby',
+  countdown: 'Countdown',
+  focusing: 'Focusing',
+  ended: 'Ended',
+  closed: 'Closed',
+};
+export const phaseLabel = (phase: string) => PHASES[phase] ?? phase;
