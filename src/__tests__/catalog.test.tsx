@@ -121,6 +121,21 @@ describe('the catalog (D6.1)', () => {
     );
   });
 
+  it('finds an item by name or id', async () => {
+    const { fetch } = api({ 'GET /admin/content/badges': ok({ items: [BADGE, UNOWNED] }) });
+    renderAdmin(<CatalogPage />, { fetch, signedIn: session('content') });
+    await screen.findByText('First Session');
+
+    const search = screen.getByRole('searchbox', { name: 'Search badges' });
+    fireEvent.change(search, { target: { value: 'diver' } });
+    expect(screen.queryByText('First Session')).toBeNull();
+    expect(screen.getByText('Deep Diver')).toBeDefined();
+    fireEvent.change(search, { target: { value: 'FIRST-SESS' } });
+    expect(screen.getByText('First Session')).toBeDefined();
+    fireEvent.change(search, { target: { value: 'nothing like it' } });
+    expect(screen.getByText('No badges match.')).toBeDefined();
+  });
+
   it('creates an item, showing every problem the API names', async () => {
     let attempts = 0;
     const { fetch, requests } = api({

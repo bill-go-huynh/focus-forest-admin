@@ -22,8 +22,19 @@ export function CatalogPage() {
   const [kind, setKind] = useState<CatalogKind>('badges');
   const [editing, setEditing] = useState<CatalogItem | 'new' | null>(null);
   const [deleting, setDeleting] = useState<CatalogItem | null>(null);
+  const [query, setQuery] = useState('');
   const list = useQuery({ queryKey: ['catalog', kind], queryFn: () => api.catalog(kind) });
   const label = KIND_LABELS[kind];
+  // Find by name or id (the catalog is small, so it is filtered here).
+  const needle = query.trim().toLowerCase();
+  const shown = (list.data?.items ?? []).filter(
+    (item) =>
+      !needle ||
+      item.id.toLowerCase().includes(needle) ||
+      String(item['name'] ?? '')
+        .toLowerCase()
+        .includes(needle),
+  );
 
   const update = (change: (items: CatalogItem[]) => CatalogItem[]) =>
     queryClient.setQueryData<{ items: CatalogItem[] }>(['catalog', kind], (old) =>
@@ -39,15 +50,26 @@ export function CatalogPage() {
             key={each}
             role="tab"
             aria-selected={each === kind}
-            onClick={() => setKind(each)}
+            onClick={() => {
+              setKind(each);
+              setQuery('');
+            }}
             className={`rounded px-3 py-1 text-sm ${each === kind ? 'bg-neutral-900 text-white' : 'border'}`}
           >
             {KIND_LABELS[each].plural}
           </button>
         ))}
       </div>
-      <div className="mb-3">
+      <div className="mb-3 flex items-center gap-3">
         <Button tone="primary" onClick={() => setEditing('new')}>{`New ${label.one}`}</Button>
+        <input
+          type="search"
+          aria-label={`Search ${label.plural.toLowerCase()}`}
+          placeholder="Name or id"
+          className="rounded border px-2 py-1 text-sm"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
       </div>
       {list.isError ? (
         <ErrorMessage error={list.error} onRetry={() => void list.refetch()} />
@@ -55,9 +77,11 @@ export function CatalogPage() {
         <Loading label={`Loading ${label.plural.toLowerCase()}`} />
       ) : list.data.items.length === 0 ? (
         <p className="text-sm">{`No ${label.plural.toLowerCase()} yet.`}</p>
+      ) : shown.length === 0 ? (
+        <p className="text-sm">{`No ${label.plural.toLowerCase()} match.`}</p>
       ) : (
         <Table head={['Preview', 'Name', 'Id', 'Status', 'Details', 'Owners', '']}>
-          {list.data.items.map((item) => (
+          {shown.map((item) => (
             <tr key={item.id}>
               <Cell>
                 <ArtworkPreview id={String(item['artworkId'] ?? item['badgeId'] ?? item.id)} />
