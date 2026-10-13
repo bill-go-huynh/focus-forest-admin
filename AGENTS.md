@@ -75,7 +75,7 @@ The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`
 - User detail: **Notifications** (admins and support): masked devices, the focus lease, what is turned on with times, and recent notifications with status and why. **Compensation** (admins): kind and item id, confirmed with a reason; refusals (`already_owned`, `not_grantable`) show in the dialog.
 - `/audit-log`: filters (admin id, action, target type and id, from, before) as a search form; empty fields are left out and values trimmed; "Clear" shows everything; more pages keep the filters.
 
-Contract parity for the Phase 6 admin routes comes with X6. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
+**X6 operations contract:** `src/test/operations-contract.json` is byte-identical with focus-forest-api `test/x6/` (regenerate there with `X6_UPDATE_CONTRACT=1`, copy, compare `shasum -a 256`; Prettier ignores it). `src/lib/__tests__/operations-contract.test.ts` parses every Phase 6 answer D6.1–D6.3 read, lists the one unread field (an activation's `values`), and reads the locked refusal by status, code, and problems. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

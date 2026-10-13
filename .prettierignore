@@ -11,3 +11,6 @@ package-lock.json
 
 # CR.X contract: byte-identical with focus-forest-api test/cr/.
 src/test/admin-contract.json
+
+# X6 operations contract: byte-identical with focus-forest-api test/x6/.
+src/test/operations-contract.json
