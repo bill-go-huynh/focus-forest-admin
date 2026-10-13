@@ -4,6 +4,8 @@ import {
   adminIdentitySchema,
   adminRoomSchema,
   auditPageSchema,
+  catalogItemSchema,
+  catalogListSchema,
   checkpointSchema,
   configViewSchema,
   dashboardSchema,
@@ -16,6 +18,7 @@ import {
   userDetailSchema,
   userPageSchema,
   userRowSchema,
+  type CatalogKind,
   type ModerationAction,
   type ReportStatus,
 } from './schemas';
@@ -29,6 +32,8 @@ export class AdminApiError extends Error {
     message: string,
     readonly status: number | null = null,
     readonly code: string | null = null,
+    /** Every problem the API named (a 422 with `problems`), to show them all at once. */
+    readonly problems: readonly string[] = [],
   ) {
     super(message);
     this.name = 'AdminApiError';
@@ -74,7 +79,7 @@ export function createAdminApi(options: AdminApiOptions) {
     const json: unknown = text ? safeJson(text) : undefined;
     if (!response.ok) {
       if (response.status === 401 && signedIn) options.onUnauthorized?.();
-      const body = (json ?? {}) as { message?: unknown; code?: unknown };
+      const body = (json ?? {}) as { message?: unknown; code?: unknown; problems?: unknown };
       const message = Array.isArray(body.message)
         ? body.message.join(' ')
         : typeof body.message === 'string'
@@ -85,6 +90,9 @@ export function createAdminApi(options: AdminApiOptions) {
         message,
         response.status,
         typeof body.code === 'string' ? body.code : null,
+        Array.isArray(body.problems)
+          ? body.problems.filter((p): p is string => typeof p === 'string')
+          : [],
       );
     }
     if (!schema) return undefined as T;
@@ -148,6 +156,20 @@ export function createAdminApi(options: AdminApiOptions) {
     dismissReport: (id: string, reason: string) =>
       request(`/admin/reports/${id}/dismiss`, reportDetailSchema, {
         method: 'POST',
+        body: { reason },
+      }),
+    // D6.1: the content catalog (admins and content staff).
+    catalog: (kind: CatalogKind) => request(`/admin/content/${kind}`, catalogListSchema),
+    createCatalogItem: (kind: CatalogKind, body: Record<string, unknown>) =>
+      request(`/admin/content/${kind}`, catalogItemSchema, { method: 'POST', body }),
+    updateCatalogItem: (kind: CatalogKind, id: string, body: Record<string, unknown>) =>
+      request(`/admin/content/${kind}/${encodeURIComponent(id)}`, catalogItemSchema, {
+        method: 'PATCH',
+        body,
+      }),
+    deleteCatalogItem: (kind: CatalogKind, id: string, reason: string) =>
+      request(`/admin/content/${kind}/${encodeURIComponent(id)}`, null, {
+        method: 'DELETE',
         body: { reason },
       }),
     // D5.1: focus rooms.

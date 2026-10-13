@@ -10,7 +10,7 @@ const instant = z.iso.datetime();
 const localDate = z.iso.date();
 const count = z.number().int().nonnegative();
 
-export const adminRoleSchema = z.enum(['admin', 'support', 'moderator']);
+export const adminRoleSchema = z.enum(['admin', 'support', 'moderator', 'content']);
 export type AdminRole = z.infer<typeof adminRoleSchema>;
 
 export const adminIdentitySchema = z.object({
@@ -229,3 +229,13 @@ export const adminRoomSchema = z.object({
 });
 export type AdminRoom = z.infer<typeof adminRoomSchema>;
 export const roomListSchema = z.object({ items: z.array(adminRoomSchema) });
+
+// D6.1: the content catalog (focus-forest-api A6.4 `/admin/content/:kind`).
+export const CATALOG_KINDS = ['badges', 'achievements', 'species', 'cosmetics'] as const;
+export type CatalogKind = (typeof CATALOG_KINDS)[number];
+
+const catalogValue = z.union([z.string(), z.number(), z.boolean(), z.null()]);
+/** An item as the catalog lists it: its fields (by kind) and how many people own it. */
+export const catalogItemSchema = z.object({ id: z.string(), owners: count }).catchall(catalogValue);
+export type CatalogItem = z.infer<typeof catalogItemSchema>;
+export const catalogListSchema = z.object({ items: z.array(catalogItemSchema) });

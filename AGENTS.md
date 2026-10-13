@@ -53,7 +53,12 @@ The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`
 - The dashboard shows open reports; users show the username; user detail shows moderation counts and block relationships.
 - The admin contract also carries `reports`, `report`, `reviewed`, `resolved`, `dismissed`, `rooms`, `roomClosed`, and the refusals `warningMessageRequired` and `reportClosed`; no unread field remains.
 
-Content management arrives with Phase 6 (legacy Phase 19). See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
+**D6.1 content catalog** (Phase 6, docs/09 later admin, `../spec/phase-6/D6.1.md`):
+- Role `content` sees Dashboard and Content only; admins see Content after Rooms; support and moderators never see it (the API refuses them too).
+- `src/features/content/CatalogPage` (`/content`): a tab per kind (badges, achievements, species, cosmetics); a table with a placeholder artwork preview, name, id, status, details, owners; "Delete" only for unowned, non-system items, confirmed with a reason.
+- `CatalogForm` follows `catalog-fields.ts` (mirrors the API's `catalog-rules.ts`): a new item asks for every field; an edit shows only editable fields and sends only the changes; every write needs a reason. The API decides validity; `AdminApiError.problems` lists every problem it names. Ids with a part are encoded in paths.
+
+Live operations, configuration versions, grants, audit filters, and notification diagnostics follow in D6.2–D6.3. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

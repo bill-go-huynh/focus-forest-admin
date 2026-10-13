@@ -74,6 +74,7 @@ describe('roles (D5.1)', () => {
       'Users',
       'Reports',
       'Rooms',
+      'Content',
       'Checkpoint',
       'Configuration',
       'Audit log',

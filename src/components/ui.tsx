@@ -58,6 +58,13 @@ export function ErrorMessage({ error, onRetry }: { error: unknown; onRetry?: () 
       className="my-3 rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900"
     >
       <p>{message}</p>
+      {error instanceof AdminApiError && error.problems.length > 1 ? (
+        <ul className="mt-1 list-disc pl-5">
+          {error.problems.map((problem) => (
+            <li key={problem}>{problem}</li>
+          ))}
+        </ul>
+      ) : null}
       {onRetry ? (
         <div className="mt-2">
           <Button onClick={onRetry}>Try again</Button>
