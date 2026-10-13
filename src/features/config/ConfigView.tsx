@@ -5,13 +5,16 @@ import { useQuery } from '@tanstack/react-query';
 import { Cell, ErrorMessage, Loading, PageTitle, Table } from '../../components/ui';
 import { valueLabel } from '../../lib/format';
 import { useAdminApi } from '../../lib/session';
+import { useHasRole } from '../shell/AdminShell';
+import { ConfigVersions } from './ConfigVersions';
 
 /**
- * The active Product configuration, read only (docs/09 → Configuration (read-only)). Changing
- * it (new versions, previews, activation) is the later admin (Phase 6).
+ * The active Product configuration (docs/09 → Configuration). Support reads it; admins also
+ * review, propose, and activate versions (D6.3, owner decision 8).
  */
 export function ConfigView() {
   const api = useAdminApi();
+  const isAdmin = useHasRole('admin');
   const config = useQuery({ queryKey: ['config'], queryFn: () => api.config() });
   if (config.isError) {
     return <ErrorMessage error={config.error} onRetry={() => void config.refetch()} />;
@@ -34,6 +37,7 @@ export function ConfigView() {
             </tr>
           ))}
       </Table>
+      {isAdmin ? <ConfigVersions activeValues={config.data.values} /> : null}
     </>
   );
 }

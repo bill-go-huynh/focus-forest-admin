@@ -357,3 +357,74 @@ export const exclusionSchema = z.object({
 });
 export type Exclusion = z.infer<typeof exclusionSchema>;
 export const exclusionListSchema = z.object({ items: z.array(exclusionSchema) });
+
+// D6.3: configuration versions, grants, and notification diagnostics (focus-forest-api A6.6).
+export const configVersionSchema = z.object({
+  version: count,
+  note: z.string(),
+  createdAt: instant,
+  active: z.boolean(),
+});
+export type ConfigVersion = z.infer<typeof configVersionSchema>;
+export const configVersionListSchema = z.object({ items: z.array(configVersionSchema) });
+
+export const configDiffSchema = z.object({
+  against: count,
+  changes: z.array(z.object({ key: z.string(), active: z.unknown(), proposed: z.unknown() })),
+});
+
+const sampleTreeSchema = z.object({
+  stage: z.string(),
+  fullnessLevel: z.number(),
+  blossomLevel: z.number(),
+  richnessTier: z.number(),
+  traitIds: z.array(z.string()),
+  activeDays: count,
+  focusedMinutes: z.number(),
+  growthMinutes: z.number(),
+});
+export type SampleTree = z.infer<typeof sampleTreeSchema>;
+export const configPreviewSchema = z.object({
+  against: count,
+  samples: z.array(
+    z.object({
+      id: z.string(),
+      label: z.string(),
+      active: sampleTreeSchema,
+      proposed: sampleTreeSchema,
+    }),
+  ),
+});
+
+export const GRANT_KINDS = ['badge', 'cosmetic', 'species'] as const;
+export type GrantKind = (typeof GRANT_KINDS)[number];
+export const grantSchema = z.object({
+  kind: z.enum(GRANT_KINDS),
+  itemId: z.string(),
+  grantedAt: instant,
+});
+
+export const notificationDiagnosticsSchema = z.object({
+  devices: z.array(
+    z.object({
+      token: z.string(),
+      platform: z.string(),
+      appVersion: z.string().nullable(),
+      registeredAt: instant,
+      lastSeenAt: instant,
+    }),
+  ),
+  focusUntil: instant.nullable(),
+  enabled: z.array(z.object({ category: z.string(), time: z.string().nullable() })),
+  recent: z.array(
+    z.object({
+      category: z.string(),
+      title: z.string(),
+      status: z.string(),
+      reason: z.string().nullable(),
+      notBefore: instant,
+      sentAt: instant.nullable(),
+    }),
+  ),
+});
+export type NotificationDiagnostics = z.infer<typeof notificationDiagnosticsSchema>;

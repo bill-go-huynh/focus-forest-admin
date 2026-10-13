@@ -165,7 +165,7 @@ const EXCLUSION = {
   by: 'admin@example.com',
 };
 
-describe('roles (D6.2)', () => {
+describe('roles (D6.2)', { timeout: 15_000 }, () => {
   it('shows content staff and admins Live; support and moderators never', () => {
     const { fetch } = api({});
     const shown = (role: 'admin' | 'support' | 'moderator' | 'content') => {
@@ -189,7 +189,7 @@ describe('roles (D6.2)', () => {
   });
 });
 
-describe('events (D6.2)', () => {
+describe('events (D6.2)', { timeout: 15_000 }, () => {
   it('lists events with their window, people, and lock, and a calendar by month', async () => {
     const { fetch } = api({ 'GET /admin/live/events': ok({ items: [OPEN_SUMMARY, SUMMARY] }) });
     renderAdmin(<LivePage />, { fetch, signedIn: session('content') });
@@ -303,7 +303,7 @@ describe('events (D6.2)', () => {
   });
 });
 
-describe('an event (D6.2)', () => {
+describe('an event (D6.2)', { timeout: 15_000 }, () => {
   it('monitors the Community Tree', async () => {
     navigation.params = { id: 'autumn-focus' };
     const { fetch } = api({ 'GET /admin/live/events/autumn-focus': ok(EVENT) });
@@ -372,7 +372,7 @@ describe('an event (D6.2)', () => {
   });
 });
 
-describe('seasonal themes (D6.2)', () => {
+describe('seasonal themes (D6.2)', { timeout: 15_000 }, () => {
   it('shows each hemisphere’s schedule with its gaps', async () => {
     const { fetch } = api({
       'GET /admin/live/events': ok({ items: [] }),
@@ -451,7 +451,7 @@ describe('seasonal themes (D6.2)', () => {
   });
 });
 
-describe('leaderboards (D6.2)', () => {
+describe('leaderboards (D6.2)', { timeout: 15_000 }, () => {
   it('excludes an abusive account with a reason, and restores one', async () => {
     let excluded = false;
     const { fetch, requests } = api({

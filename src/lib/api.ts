@@ -7,12 +7,18 @@ import {
   catalogItemSchema,
   catalogListSchema,
   checkpointSchema,
+  configDiffSchema,
+  configPreviewSchema,
+  configVersionListSchema,
+  configVersionSchema,
   configViewSchema,
   dashboardSchema,
   exclusionListSchema,
   exclusionSchema,
+  grantSchema,
   liveEventListSchema,
   liveEventSchema,
+  notificationDiagnosticsSchema,
   reportDetailSchema,
   reportPageSchema,
   revealedNoteSchema,
@@ -26,9 +32,20 @@ import {
   userPageSchema,
   userRowSchema,
   type CatalogKind,
+  type GrantKind,
   type ModerationAction,
   type ReportStatus,
 } from './schemas';
+
+/** Audit log filters (D6.3): `from` inclusive, `to` exclusive, both ISO 8601 instants. */
+export interface AuditFilters {
+  adminId?: string;
+  action?: string;
+  targetType?: string;
+  targetId?: string;
+  from?: string;
+  to?: string;
+}
 
 /** A board staff can view: global by period, or one event's. */
 export type StaffBoardQuery =
@@ -150,7 +167,32 @@ export function createAdminApi(options: AdminApiOptions) {
     deleteUser: (id: string, reason: string, confirmEmail: string) =>
       request(`/admin/users/${id}`, null, { method: 'DELETE', body: { reason, confirmEmail } }),
     config: () => request('/admin/config', configViewSchema),
-    auditLog: (cursor?: string) => request(`/admin/audit-log${query({ cursor })}`, auditPageSchema),
+    auditLog: (cursor?: string, filters: AuditFilters = {}) =>
+      request(`/admin/audit-log${query({ ...filters, cursor })}`, auditPageSchema),
+    // D6.3: configuration versions (admins only).
+    configVersions: () => request('/admin/config/versions', configVersionListSchema),
+    configDiff: (version: number) =>
+      request(`/admin/config/versions/${version}/diff`, configDiffSchema),
+    configPreview: (version: number) =>
+      request(`/admin/config/versions/${version}/preview`, configPreviewSchema),
+    proposeConfig: (values: Record<string, unknown>, note: string, reason: string) =>
+      request('/admin/config/versions', configVersionSchema, {
+        method: 'POST',
+        body: { values, note, reason },
+      }),
+    activateConfig: (version: number, reason: string) =>
+      request(`/admin/config/versions/${version}/activate`, configVersionSchema, {
+        method: 'POST',
+        body: { reason },
+      }),
+    // D6.3: compensation grants (admins) and notification diagnostics (admins and support).
+    grant: (userId: string, kind: GrantKind, itemId: string, reason: string) =>
+      request(`/admin/users/${userId}/grants`, grantSchema, {
+        method: 'POST',
+        body: { kind, itemId, reason },
+      }),
+    notificationDiagnostics: (userId: string) =>
+      request(`/admin/users/${userId}/notifications`, notificationDiagnosticsSchema),
     checkpoint: (from: string, to: string) =>
       request(`/admin/analytics/checkpoint${query({ from, to })}`, checkpointSchema),
     // D5.1: reports and moderation (admins and moderators).

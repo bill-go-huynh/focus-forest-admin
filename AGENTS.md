@@ -67,7 +67,15 @@ The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`
 - `EventDetail` (`/live/events/[id]`): the Community Tree monitor (minutes, contributors, each stage reached or minutes to go), `EventEditor`, and "Delete event" only while nobody joined.
 - `EventEditor`: teams, missions, milestones, and Community Tree as row lists (`fields.tsx` `Rows`). Once anyone joined, the start, entry condition, and every list are disabled with "Locked: people have taken part."; the end can only move later. An edit sends only changed fields (`changedFields`); a served milestone's cosmetic reward and trait are read back as the API takes them (`eventFormValues`).
 
-Configuration versions, grants, audit filters, and notification diagnostics follow in D6.3. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
+**D6.3 configuration and operations** (Phase 6, docs/09 → Configuration, support actions, audit log; `../spec/phase-6/D6.3.md`):
+- `/config`: support reads the active values only. Admins also get `ConfigVersions`:
+  - the versions table ("Active", or "Review vN");
+  - a review: "Changes against vN" (the API's diff; a missing key shows "—"), "Sample months" (each cell "active → proposed" when they differ), and "Activate vN" confirmed with a reason (never retroactive);
+  - "Propose a version": the whole configuration as JSON, starting from the active values, with a note and reason. Text that is not one JSON object is refused before any request; the API's problems are listed. A proposal opens its review.
+- User detail: **Notifications** (admins and support): masked devices, the focus lease, what is turned on with times, and recent notifications with status and why. **Compensation** (admins): kind and item id, confirmed with a reason; refusals (`already_owned`, `not_grantable`) show in the dialog.
+- `/audit-log`: filters (admin id, action, target type and id, from, before) as a search form; empty fields are left out and values trimmed; "Clear" shows everything; more pages keep the filters.
+
+Contract parity for the Phase 6 admin routes comes with X6. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

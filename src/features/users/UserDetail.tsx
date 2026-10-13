@@ -26,6 +26,7 @@ import {
 import type { SessionRow, UserDetail as Detail, UserRow } from '../../lib/schemas';
 import { useAdminApi } from '../../lib/session';
 import { useHasRole } from '../shell/AdminShell';
+import { CompensationGrant, NotificationDiagnostics } from './UserOperations';
 
 type Dialog = 'suspend' | 'reactivate' | 'delete' | { reveal: SessionRow } | null;
 
@@ -43,6 +44,8 @@ export function UserDetail() {
   const isAdmin = useHasRole('admin');
   // Moderators never read notes (A5.3, least privilege).
   const canRevealNotes = useHasRole('admin', 'support');
+  // D6.3: notification diagnostics for admins and support (A6.6).
+  const canDiagnose = useHasRole('admin', 'support');
   const [dialog, setDialog] = useState<Dialog>(null);
   const [notes, setNotes] = useState<Record<string, string | null>>({});
   const user = useQuery({ queryKey: ['user', id], queryFn: () => api.user(id) });
@@ -165,6 +168,9 @@ export function UserDetail() {
           ) : null}
         </>
       )}
+
+      {canDiagnose ? <NotificationDiagnostics userId={id} /> : null}
+      {isAdmin ? <CompensationGrant userId={id} /> : null}
 
       {isAdmin ? (
         <>
