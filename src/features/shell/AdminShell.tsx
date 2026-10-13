@@ -16,6 +16,8 @@ const LINKS: { href: string; label: string; roles: readonly AdminRole[] }[] = [
   { href: '/rooms', label: 'Rooms', roles: ['admin', 'moderator'] },
   // D6.1 (docs/09 later admin, owner decision 8): content definitions for admins and content staff.
   { href: '/content', label: 'Content', roles: ['admin', 'content'] },
+  // D6.2 (docs/09 later admin): events, seasonal themes, and leaderboards.
+  { href: '/live', label: 'Live', roles: ['admin', 'content'] },
   { href: '/checkpoint', label: 'Checkpoint', roles: ['admin', 'support'] },
   { href: '/config', label: 'Configuration', roles: ['admin', 'support'] },
   { href: '/audit-log', label: 'Audit log', roles: ['admin'] },

@@ -20,12 +20,15 @@ export function Button({
   type = 'button',
   disabled,
   tone = 'default',
+  label,
 }: {
   children: ReactNode;
   onClick?: () => void;
   type?: 'button' | 'submit';
   disabled?: boolean;
   tone?: 'default' | 'primary' | 'danger';
+  /** The accessible name, when the text alone repeats on every row ("Edit"). */
+  label?: string;
 }) {
   const tones = {
     default: 'border-neutral-400',
@@ -37,6 +40,7 @@ export function Button({
       type={type}
       onClick={onClick}
       disabled={disabled}
+      aria-label={label}
       className={`rounded border px-3 py-1.5 text-sm disabled:opacity-50 ${tones[tone]}`}
     >
       {children}
@@ -82,9 +86,18 @@ export function Loading({ label }: { label: string }) {
   );
 }
 
-export function Table({ head, children }: { head: string[]; children: ReactNode }) {
+export function Table({
+  head,
+  label,
+  children,
+}: {
+  head: string[];
+  /** The table's accessible name, when a page holds more than one. */
+  label?: string;
+  children: ReactNode;
+}) {
   return (
-    <table className="w-full border-collapse text-sm">
+    <table aria-label={label} className="w-full border-collapse text-sm">
       <thead>
         <tr>
           {head.map((cell) => (

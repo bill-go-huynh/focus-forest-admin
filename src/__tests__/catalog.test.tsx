@@ -82,12 +82,12 @@ const COSMETIC = {
 };
 
 describe('roles (D6.1)', () => {
-  it('shows content staff the dashboard and the catalog only', () => {
+  it('shows content staff the dashboard, the catalog, and live operations only', () => {
     renderAdmin(<AdminShell>content</AdminShell>, {
       fetch: api({}).fetch,
       signedIn: session('content'),
     });
-    expect(links()).toEqual(['Dashboard', 'Content']);
+    expect(links()).toEqual(['Dashboard', 'Content', 'Live']);
   });
 
   it('shows admins the catalog among everything else', () => {

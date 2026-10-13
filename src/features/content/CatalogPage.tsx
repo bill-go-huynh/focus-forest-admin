@@ -5,16 +5,11 @@ import { useState } from 'react';
 
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Button, Cell, ErrorMessage, Loading, PageTitle, Table } from '../../components/ui';
+import { liveStatusLabel } from '../../lib/format';
 import { CATALOG_KINDS, type CatalogItem, type CatalogKind } from '../../lib/schemas';
 import { useAdminApi } from '../../lib/session';
 import { CatalogForm } from './CatalogForm';
 import { KIND_LABELS } from './catalog-fields';
-
-const STATUS_LABELS: Record<string, string> = {
-  planned: 'Planned',
-  active: 'Active',
-  retired: 'Retired',
-};
 
 /**
  * The content catalog (D6.1; docs/09 later admin): badges, achievements, species, and cosmetics.
@@ -71,7 +66,7 @@ export function CatalogPage() {
               <Cell>
                 <code>{item.id}</code>
               </Cell>
-              <Cell>{item['status'] ? STATUS_LABELS[String(item['status'])] : '—'}</Cell>
+              <Cell>{item['status'] ? liveStatusLabel(String(item['status'])) : '—'}</Cell>
               <Cell>{details(kind, item)}</Cell>
               <Cell>{item.owners}</Cell>
               <Cell>

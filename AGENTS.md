@@ -58,7 +58,16 @@ The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`
 - `src/features/content/CatalogPage` (`/content`): a tab per kind (badges, achievements, species, cosmetics); a table with a placeholder artwork preview, name, id, status, details, owners; "Delete" only for unowned, non-system items, confirmed with a reason.
 - `CatalogForm` follows `catalog-fields.ts` (mirrors the API's `catalog-rules.ts`): a new item asks for every field; an edit shows only editable fields and sends only the changes; every write needs a reason. The API decides validity; `AdminApiError.problems` lists every problem it names. Ids with a part are encoded in paths.
 
-Live operations, configuration versions, grants, audit filters, and notification diagnostics follow in D6.2–D6.3. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
+**D6.2 live operations** (Phase 6, docs/09 later admin, `../spec/phase-6/D6.2.md`):
+- Role `admin` and `content` see Live after Content.
+- `src/features/live/LivePage` (`/live`), three tabs:
+  - **Events:** a table (window, people, "Locked") linking to `/live/events/[id]`, a calendar by UTC month (`eventCalendar`), and "New event".
+  - **Seasonal themes:** each hemisphere's schedule (`themeSchedule`: themes for it and for both, gaps as "No theme", overlaps named, retired left out); a table with Edit, and Delete only before a theme starts; `ThemeForm` locks the start, hemisphere, and rewards once started.
+  - **Leaderboards:** global weekly or monthly, or an event with a board (teams shown); "Exclude" and "Restore" confirmed with a reason; the excluded accounts.
+- `EventDetail` (`/live/events/[id]`): the Community Tree monitor (minutes, contributors, each stage reached or minutes to go), `EventEditor`, and "Delete event" only while nobody joined.
+- `EventEditor`: teams, missions, milestones, and Community Tree as row lists (`fields.tsx` `Rows`). Once anyone joined, the start, entry condition, and every list are disabled with "Locked: people have taken part."; the end can only move later. An edit sends only changed fields (`changedFields`); a served milestone's cosmetic reward and trait are read back as the API takes them (`eventFormValues`).
+
+Configuration versions, grants, audit filters, and notification diagnostics follow in D6.3. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
 
 <!-- BEGIN:nextjs-agent-rules -->
 

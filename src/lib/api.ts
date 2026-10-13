@@ -9,12 +9,19 @@ import {
   checkpointSchema,
   configViewSchema,
   dashboardSchema,
+  exclusionListSchema,
+  exclusionSchema,
+  liveEventListSchema,
+  liveEventSchema,
   reportDetailSchema,
   reportPageSchema,
   revealedNoteSchema,
   roomListSchema,
   sessionPageSchema,
   signInSchema,
+  staffBoardSchema,
+  themeListSchema,
+  themeSchema,
   userDetailSchema,
   userPageSchema,
   userRowSchema,
@@ -22,6 +29,10 @@ import {
   type ModerationAction,
   type ReportStatus,
 } from './schemas';
+
+/** A board staff can view: global by period, or one event's. */
+export type StaffBoardQuery =
+  { scope: 'global'; period: 'weekly' | 'monthly' } | { scope: 'event'; eventId: string };
 
 export type AdminApiErrorKind = 'http' | 'network' | 'invalid_response';
 
@@ -169,6 +180,55 @@ export function createAdminApi(options: AdminApiOptions) {
       }),
     deleteCatalogItem: (kind: CatalogKind, id: string, reason: string) =>
       request(`/admin/content/${kind}/${encodeURIComponent(id)}`, null, {
+        method: 'DELETE',
+        body: { reason },
+      }),
+    // D6.2: live operations (admins and content staff).
+    liveEvents: () => request('/admin/live/events', liveEventListSchema),
+    liveEvent: (id: string) =>
+      request(`/admin/live/events/${encodeURIComponent(id)}`, liveEventSchema),
+    createLiveEvent: (body: Record<string, unknown>) =>
+      request('/admin/live/events', liveEventSchema, { method: 'POST', body }),
+    updateLiveEvent: (id: string, body: Record<string, unknown>) =>
+      request(`/admin/live/events/${encodeURIComponent(id)}`, liveEventSchema, {
+        method: 'PATCH',
+        body,
+      }),
+    deleteLiveEvent: (id: string, reason: string) =>
+      request(`/admin/live/events/${encodeURIComponent(id)}`, null, {
+        method: 'DELETE',
+        body: { reason },
+      }),
+    themes: () => request('/admin/live/themes', themeListSchema),
+    createTheme: (body: Record<string, unknown>) =>
+      request('/admin/live/themes', themeSchema, { method: 'POST', body }),
+    updateTheme: (id: string, body: Record<string, unknown>) =>
+      request(`/admin/live/themes/${encodeURIComponent(id)}`, themeSchema, {
+        method: 'PATCH',
+        body,
+      }),
+    deleteTheme: (id: string, reason: string) =>
+      request(`/admin/live/themes/${encodeURIComponent(id)}`, null, {
+        method: 'DELETE',
+        body: { reason },
+      }),
+    staffBoard: (board: StaffBoardQuery) =>
+      request(
+        `/admin/live/leaderboards${query(
+          board.scope === 'event'
+            ? { scope: 'event', eventId: board.eventId }
+            : { scope: 'global', period: board.period },
+        )}`,
+        staffBoardSchema,
+      ),
+    exclusions: () => request('/admin/live/leaderboard-exclusions', exclusionListSchema),
+    exclude: (userId: string, reason: string) =>
+      request('/admin/live/leaderboard-exclusions', exclusionSchema, {
+        method: 'POST',
+        body: { userId, reason },
+      }),
+    include: (userId: string, reason: string) =>
+      request(`/admin/live/leaderboard-exclusions/${encodeURIComponent(userId)}`, null, {
         method: 'DELETE',
         body: { reason },
       }),

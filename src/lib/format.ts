@@ -85,3 +85,11 @@ const PHASES: Record<string, string> = {
   closed: 'Closed',
 };
 export const phaseLabel = (phase: string) => PHASES[phase] ?? phase;
+
+const LIVE_STATUSES: Record<string, string> = {
+  planned: 'Planned',
+  active: 'Active',
+  retired: 'Retired',
+};
+/** A content definition's, event's, or theme's status. */
+export const liveStatusLabel = (status: string) => LIVE_STATUSES[status] ?? status;

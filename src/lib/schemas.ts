@@ -239,3 +239,121 @@ const catalogValue = z.union([z.string(), z.number(), z.boolean(), z.null()]);
 export const catalogItemSchema = z.object({ id: z.string(), owners: count }).catchall(catalogValue);
 export type CatalogItem = z.infer<typeof catalogItemSchema>;
 export const catalogListSchema = z.object({ items: z.array(catalogItemSchema) });
+
+// D6.2: live operations (focus-forest-api A6.5 `/admin/live`).
+export const liveStatusSchema = z.enum(['planned', 'active', 'retired']);
+
+export const liveEventSummarySchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  status: liveStatusSchema,
+  startsAt: instant,
+  endsAt: instant,
+  leaderboard: z.boolean(),
+  participants: count,
+  locked: z.boolean(),
+});
+export type LiveEventSummary = z.infer<typeof liveEventSummarySchema>;
+export const liveEventListSchema = z.object({ items: z.array(liveEventSummarySchema) });
+
+export const liveEventSchema = liveEventSummarySchema.extend({
+  description: z.string(),
+  artworkId: z.string(),
+  entryMinSessions: count,
+  teams: z.array(z.object({ id: z.string(), name: z.string() })),
+  missions: z.array(
+    z.object({
+      id: z.string(),
+      measure: z.string(),
+      target: count,
+      dailyMinutes: count,
+      name: z.string(),
+      description: z.string(),
+    }),
+  ),
+  milestones: z.array(
+    z.object({
+      id: z.string(),
+      name: z.string(),
+      requiredMissions: count,
+      badgeId: z.string().nullable(),
+      cosmeticId: z.string().nullable(),
+      traitId: z.string().nullable(),
+    }),
+  ),
+  communityTree: z
+    .object({
+      name: z.string(),
+      artworkId: z.string(),
+      totalMinutes: count,
+      contributors: count,
+      milestones: z.array(
+        z.object({
+          stage: z.string(),
+          thresholdMinutes: count,
+          badgeId: z.string().nullable(),
+          reachedAt: instant.nullable(),
+        }),
+      ),
+    })
+    .nullable(),
+});
+export type LiveEvent = z.infer<typeof liveEventSchema>;
+
+export const themeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  environmentId: z.string(),
+  hemisphere: z.enum(['north', 'south']).nullable(),
+  status: liveStatusSchema,
+  startsAt: instant,
+  endsAt: instant,
+  rewards: z.array(z.object({ id: z.string(), badgeId: z.string(), requiredActiveDays: count })),
+  started: z.boolean(),
+});
+export type Theme = z.infer<typeof themeSchema>;
+export const themeListSchema = z.object({ items: z.array(themeSchema) });
+
+export const staffBoardSchema = z.object({
+  scope: z.enum(['global', 'event']),
+  period: z.object({ kind: z.string(), startDate: localDate, endDate: localDate }),
+  rows: z.array(
+    z.object({
+      rank: count,
+      person: z.object({
+        id: z.string(),
+        username: z.string().nullable(),
+        displayName: z.string().nullable(),
+        avatarUrl: z.string().nullable(),
+      }),
+      score: z.number(),
+    }),
+  ),
+  teams: z
+    .array(
+      z.object({
+        id: z.string(),
+        name: z.string(),
+        rank: count,
+        score: z.number(),
+        members: count,
+      }),
+    )
+    .nullable(),
+});
+export type StaffBoard = z.infer<typeof staffBoardSchema>;
+
+export const exclusionSchema = z.object({
+  user: z.object({
+    id: z.string(),
+    email: z.string(),
+    username: z.string().nullable(),
+    displayName: z.string().nullable(),
+  }),
+  reason: z.string(),
+  excludedAt: instant,
+  by: z.string(),
+});
+export type Exclusion = z.infer<typeof exclusionSchema>;
+export const exclusionListSchema = z.object({ items: z.array(exclusionSchema) });
