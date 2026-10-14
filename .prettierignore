@@ -14,3 +14,6 @@ src/test/admin-contract.json
 
 # X6 operations contract: byte-identical with focus-forest-api test/x6/.
 src/test/operations-contract.json
+
+# X7 release contract: byte-identical with focus-forest-api test/x7/.
+src/test/release-contract.json
