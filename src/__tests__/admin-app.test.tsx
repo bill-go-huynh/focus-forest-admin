@@ -101,7 +101,7 @@ describe('the shell (CR.5)', () => {
       within(nav)
         .getAllByRole('link')
         .map((link) => link.textContent),
-    ).toEqual(['Dashboard', 'Users', 'Checkpoint', 'Configuration']);
+    ).toEqual(['Dashboard', 'Users', 'App errors', 'Checkpoint', 'Configuration']);
     expect(screen.getByText('support@example.com (support)')).toBeDefined();
     unmount();
     renderAdmin(<AdminShell>content</AdminShell>, {

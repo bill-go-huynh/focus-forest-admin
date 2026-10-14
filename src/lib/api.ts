@@ -7,6 +7,7 @@ import {
   catalogItemSchema,
   catalogListSchema,
   checkpointSchema,
+  clientErrorGroupsSchema,
   configDiffSchema,
   configPreviewSchema,
   configVersionListSchema,
@@ -16,8 +17,10 @@ import {
   exclusionListSchema,
   exclusionSchema,
   grantSchema,
+  integrityListSchema,
   liveEventListSchema,
   liveEventSchema,
+  rateLimitRefusalsSchema,
   notificationDiagnosticsSchema,
   reportDetailSchema,
   reportPageSchema,
@@ -274,6 +277,16 @@ export function createAdminApi(options: AdminApiOptions) {
         method: 'DELETE',
         body: { reason },
       }),
+    // D7.1: leaderboard integrity (admins and content staff) and app errors (admins, support).
+    integrityFlags: () => request('/admin/integrity/flags', integrityListSchema),
+    dismissIntegrityFlag: (userId: string, key: string, reason: string) =>
+      request('/admin/integrity/dismissals', null, {
+        method: 'POST',
+        body: { userId, key, reason },
+      }),
+    clientErrors: (days: number) =>
+      request(`/admin/client-errors${query({ days: String(days) })}`, clientErrorGroupsSchema),
+    rateLimitRefusals: () => request('/admin/rate-limits', rateLimitRefusalsSchema),
     // D5.1: focus rooms.
     rooms: () => request('/admin/rooms', roomListSchema),
     closeRoom: (id: string, reason: string) =>

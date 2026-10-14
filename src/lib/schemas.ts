@@ -428,3 +428,64 @@ export const notificationDiagnosticsSchema = z.object({
   ),
 });
 export type NotificationDiagnostics = z.infer<typeof notificationDiagnosticsSchema>;
+
+// D7.1: leaderboard integrity (focus-forest-api A7.3) and app error reports (A7.4).
+const integrityFlagSchema = z.discriminatedUnion('kind', [
+  z.object({
+    kind: z.literal('overlap'),
+    key: z.string(),
+    detail: z.object({ sessionIds: z.tuple([z.string(), z.string()]), overlapMinutes: count }),
+  }),
+  z.object({
+    kind: z.literal('day_total'),
+    key: z.string(),
+    detail: z.object({ localDate: localDate, focusMinutes: count }),
+  }),
+  z.object({
+    kind: z.literal('late'),
+    key: z.string(),
+    detail: z.object({ sessionId: z.string(), hoursLate: count }),
+  }),
+  z.object({
+    kind: z.literal('spike'),
+    key: z.string(),
+    detail: z.object({ weekStart: localDate, focusMinutes: count, usualMinutes: count }),
+  }),
+]);
+export type IntegrityFlag = z.infer<typeof integrityFlagSchema>;
+export const integrityListSchema = z.object({
+  items: z.array(
+    z.object({
+      user: z.object({
+        id: z.string(),
+        email: z.string(),
+        username: z.string().nullable(),
+        displayName: z.string().nullable(),
+      }),
+      flags: z.array(integrityFlagSchema),
+    }),
+  ),
+});
+
+export const clientErrorGroupsSchema = z.object({
+  items: z.array(
+    z.object({
+      kind: z.enum(['crash', 'error']),
+      message: z.string(),
+      platform: z.string(),
+      appVersion: z.string(),
+      screen: z.string().nullable(),
+      count: count,
+      firstSeen: instant,
+      lastSeen: instant,
+      stack: z.string().nullable(),
+    }),
+  ),
+});
+export type ClientErrorGroup = z.infer<typeof clientErrorGroupsSchema>['items'][number];
+
+/** D7.1: rate-limit refusals over the last day (A7.2). */
+export const rateLimitRefusalsSchema = z.object({
+  since: instant,
+  items: z.array(z.object({ name: z.string(), limit: count, refused: count, keys: count })),
+});

@@ -18,6 +18,9 @@ const LINKS: { href: string; label: string; roles: readonly AdminRole[] }[] = [
   { href: '/content', label: 'Content', roles: ['admin', 'content'] },
   // D6.2 (docs/09 later admin): events, seasonal themes, and leaderboards.
   { href: '/live', label: 'Live', roles: ['admin', 'content'] },
+  // D7.1: leaderboard integrity (who runs the boards) and app errors (who supports people).
+  { href: '/integrity', label: 'Integrity', roles: ['admin', 'content'] },
+  { href: '/client-errors', label: 'App errors', roles: ['admin', 'support'] },
   { href: '/checkpoint', label: 'Checkpoint', roles: ['admin', 'support'] },
   { href: '/config', label: 'Configuration', roles: ['admin', 'support'] },
   { href: '/audit-log', label: 'Audit log', roles: ['admin'] },

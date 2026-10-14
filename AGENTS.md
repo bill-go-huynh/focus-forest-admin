@@ -86,3 +86,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+**D7.1 safety and health** (Phase 7; `../spec/phase-7/D7.1.md`):
+- **Integrity** (`/integrity`, admin and content; A7.3): each person's flags in plain words (`flagLabel`), "Dismiss" per flag and "Exclude from boards" per person, each confirmed with a reason; flags change nothing on their own.
+- **App errors** (`/client-errors`, admin and support; A7.4): reports grouped, a period (1, 7, 30 days), the stack on request; and **Rate limits** (A7.2): refusals and refused keys per limit over the last day, counts only.

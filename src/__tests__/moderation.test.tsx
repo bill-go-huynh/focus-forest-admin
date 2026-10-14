@@ -76,6 +76,8 @@ describe('roles (D5.1)', () => {
       'Rooms',
       'Content',
       'Live',
+      'Integrity',
+      'App errors',
       'Checkpoint',
       'Configuration',
       'Audit log',
@@ -85,7 +87,7 @@ describe('roles (D5.1)', () => {
       fetch: api({}).fetch,
       signedIn: session('support'),
     });
-    expect(links()).toEqual(['Dashboard', 'Users', 'Checkpoint', 'Configuration']);
+    expect(links()).toEqual(['Dashboard', 'Users', 'App errors', 'Checkpoint', 'Configuration']);
   });
 });
 

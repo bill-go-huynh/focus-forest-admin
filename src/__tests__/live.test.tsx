@@ -185,7 +185,7 @@ describe('roles (D6.2)', { timeout: 15_000 }, () => {
       fetch: api({}).fetch,
       signedIn: session('content'),
     });
-    expect(links()).toEqual(['Dashboard', 'Content', 'Live']);
+    expect(links()).toEqual(['Dashboard', 'Content', 'Live', 'Integrity']);
   });
 });
 

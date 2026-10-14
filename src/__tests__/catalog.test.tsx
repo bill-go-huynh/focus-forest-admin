@@ -87,7 +87,7 @@ describe('roles (D6.1)', () => {
       fetch: api({}).fetch,
       signedIn: session('content'),
     });
-    expect(links()).toEqual(['Dashboard', 'Content', 'Live']);
+    expect(links()).toEqual(['Dashboard', 'Content', 'Live', 'Integrity']);
   });
 
   it('shows admins the catalog among everything else', () => {
