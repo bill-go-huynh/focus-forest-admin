@@ -77,6 +77,8 @@ The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`
 
 **X6 operations contract:** `src/test/operations-contract.json` is byte-identical with focus-forest-api `test/x6/` (regenerate there with `X6_UPDATE_CONTRACT=1`, copy, compare `shasum -a 256`; Prettier ignores it). `src/lib/__tests__/operations-contract.test.ts` parses every Phase 6 answer D6.1–D6.3 read, lists the one unread field (an activation's `values`), and reads the locked refusal by status, code, and problems. See `../docs/12_PRODUCT_IMPLEMENTATION_PLAN.md`.
 
+**X7 release contract:** `src/test/release-contract.json` is byte-identical with focus-forest-api `test/x7/` (regenerate there with `X7_UPDATE_CONTRACT=1`, copy, compare `shasum -a 256`; Prettier ignores it). `src/lib/__tests__/release-contract.test.ts` parses the Phase 7 answers D7.1 reads (integrity flags, client errors, rate-limit refusals) with no unread field, and reads the public 429 by status and code.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know
