@@ -7,6 +7,7 @@ import { Button, ErrorMessage, Loading, PageTitle, SectionTitle } from '../../co
 import { AdminApiError } from '../../lib/api';
 import {
   DEMO_CATEGORIES,
+  DEMO_PERSONAS,
   type DemoCategory,
   type DemoNotifyResult,
   type DemoPersona,
@@ -20,26 +21,34 @@ import { useAdminApi } from '../../lib/session';
  * which belongs on a local or demo server, never where real people use the app.
  */
 
-const PERSONA: Record<DemoPersona, { label: string; shows: string }> = {
+const PERSONA: Record<DemoPersona, { label: string; name: string; shows: string }> = {
   main: {
     label: 'Presenter',
+    name: 'Bill',
     shows:
       'First open: the planting ceremony and last month’s recap. Then one 25-minute session: a Mature Tree, the 50 Hours badge with Maple, and a 7-day streak with Pine; the demo Community Tree reaches its first milestone.',
   },
   comeback: {
     label: 'Comeback',
+    name: 'An',
     shows: 'The tree is Resting quietly after three days away; one session wakes it (“Waking up”).',
   },
   recovery: {
     label: 'Recovery',
+    name: 'Vy',
     shows: 'Missed only yesterday after 4 days: one session today offers “Keep my streak”.',
   },
   'friend-mai': {
     label: 'Friend',
+    name: 'Mai',
     shows: 'Follows the presenter back; invites to challenges and rooms.',
   },
-  'friend-khoa': { label: 'Friend', shows: 'Joins the presenter’s room and gets ready.' },
-  'friend-linh': { label: 'Friend', shows: 'Reacts to the presenter’s forest.' },
+  'friend-khoa': {
+    label: 'Friend',
+    name: 'Khoa',
+    shows: 'Joins the presenter’s room and gets ready.',
+  },
+  'friend-linh': { label: 'Friend', name: 'Linh', shows: 'Reacts to the presenter’s forest.' },
 };
 
 const CATEGORY: Record<DemoCategory, string> = {
@@ -96,6 +105,7 @@ function DemoWorlds() {
   const worlds = useQuery({ queryKey: ['demo', 'worlds'], queryFn: () => api.demoWorlds() });
   const passwordId = useId();
   const [password, setPassword] = useState('');
+  const [emails, setEmails] = useState<Partial<Record<DemoPersona, string>>>({});
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -105,7 +115,16 @@ function DemoWorlds() {
     setProblem(null);
     setBusy(true);
     try {
-      await api.makeDemoWorld(password, 'Demo');
+      // Blank ones are left out: the API gives those accounts demoN…@focusforest.test.
+      const entered = Object.fromEntries(
+        DEMO_PERSONAS.flatMap((p) => (emails[p]?.trim() ? [[p, emails[p].trim()]] : [])),
+      );
+      await api.makeDemoWorld(
+        password,
+        'Demo',
+        Object.keys(entered).length > 0 ? entered : undefined,
+      );
+      setEmails({});
       await queryClient.invalidateQueries({ queryKey: ['demo', 'worlds'] });
     } catch (error) {
       setProblem(messageOf(error));
@@ -120,7 +139,8 @@ function DemoWorlds() {
         <SectionTitle>New demo world</SectionTitle>
         <p className="text-sm text-neutral-700">
           Six accounts with history, and a demo event. Each demo uses a fresh world: what it shows
-          happens once, as in the app.
+          happens once, as in the app. Enter the emails you want to sign in with, or leave them
+          blank; an email that already has an account is refused.
         </p>
         <label htmlFor={passwordId} className="block text-sm">
           Password for the demo accounts
@@ -132,6 +152,24 @@ function DemoWorlds() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
+        <EmailField
+          persona="main"
+          value={emails.main ?? ''}
+          onChange={(main) => setEmails((all) => ({ ...all, main }))}
+        />
+        <details className="text-sm">
+          <summary className="cursor-pointer">Emails for the other accounts</summary>
+          <div className="mt-2 space-y-2">
+            {DEMO_PERSONAS.filter((p) => p !== 'main').map((p) => (
+              <EmailField
+                key={p}
+                persona={p}
+                value={emails[p] ?? ''}
+                onChange={(email) => setEmails((all) => ({ ...all, [p]: email }))}
+              />
+            ))}
+          </div>
+        </details>
         {problem ? (
           <p role="alert" className="text-sm text-red-800">
             {problem}
@@ -151,6 +189,39 @@ function DemoWorlds() {
       ) : (
         worlds.data.items.map((world) => <World key={world.id} world={world} />)
       )}
+    </div>
+  );
+}
+
+/**
+ * The address to sign in with on the phone. Optional: left blank, the account gets
+ * demoN…@focusforest.test. An address that already has an account is refused, so a real
+ * account is never changed.
+ */
+function EmailField({
+  persona,
+  value,
+  onChange,
+}: {
+  persona: DemoPersona;
+  value: string;
+  onChange: (email: string) => void;
+}) {
+  const id = useId();
+  const { label, name } = PERSONA[persona];
+  return (
+    <div className="space-y-1">
+      <label htmlFor={id} className="block text-sm">
+        Email for {label} ({name})
+      </label>
+      <input
+        id={id}
+        type="email"
+        className={`${input} w-full`}
+        placeholder="Leave blank for a demo…@focusforest.test address"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+      />
     </div>
   );
 }

@@ -296,10 +296,14 @@ export function createAdminApi(options: AdminApiOptions) {
     // DM.2: demo tools (spec/demo/PLAN.md).
     demoStatus: () => request('/admin/demo/status', demoStatusSchema),
     demoWorlds: () => request('/admin/demo/worlds', demoWorldListSchema),
-    makeDemoWorld: (password: string, reason: string) =>
+    makeDemoWorld: (
+      password: string,
+      reason: string,
+      emails?: Partial<Record<DemoPersona, string>>,
+    ) =>
       request('/admin/demo/worlds', demoWorldSchema, {
         method: 'POST',
-        body: { password, reason },
+        body: emails ? { password, reason, emails } : { password, reason },
       }),
     demoNotify: (world: number, persona: DemoPersona, category: DemoCategory) =>
       request(`/admin/demo/worlds/${world}/notify`, demoNotifyResultSchema, {

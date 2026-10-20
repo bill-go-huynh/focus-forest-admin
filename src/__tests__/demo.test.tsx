@@ -97,6 +97,58 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     });
   });
 
+  it('makes the accounts with the emails entered, leaving the blank ones to the API', async () => {
+    const { fetch, requests } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': ok({ items: [] }),
+      'POST /admin/demo/worlds': ok(WORLD, 201),
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    await screen.findByText('No demo world yet.');
+    fireEvent.change(screen.getByLabelText('Password for the demo accounts'), {
+      target: { value: 'demo-password-1' },
+    });
+    fireEvent.change(screen.getByLabelText('Email for Presenter (Bill)'), {
+      target: { value: ' bill.presenter@gmail.com ' },
+    });
+    fireEvent.change(screen.getByLabelText('Email for Friend (Khoa)'), {
+      target: { value: 'khoa@team.dev' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
+    await waitFor(() =>
+      expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
+        password: 'demo-password-1',
+        reason: 'Demo',
+        emails: { main: 'bill.presenter@gmail.com', 'friend-khoa': 'khoa@team.dev' },
+      }),
+    );
+  });
+
+  it('says when an email entered already has an account', async () => {
+    const { fetch } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': ok({ items: [] }),
+      'POST /admin/demo/worlds': ok(
+        nestError(
+          409,
+          'real@example.com already has an account. A demo world only makes new accounts.',
+          'email_taken',
+        ),
+        409,
+      ),
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    await screen.findByText('No demo world yet.');
+    fireEvent.change(screen.getByLabelText('Password for the demo accounts'), {
+      target: { value: 'demo-password-1' },
+    });
+    fireEvent.change(screen.getByLabelText('Email for Presenter (Bill)'), {
+      target: { value: 'real@example.com' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
+    expect(await screen.findByText(/real@example.com already has an account/)).toBeTruthy();
+  });
+
   it('refuses a short password before sending', async () => {
     const { fetch, requests } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
