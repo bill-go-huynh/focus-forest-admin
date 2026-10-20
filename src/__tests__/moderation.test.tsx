@@ -81,6 +81,8 @@ describe('roles (D5.1)', () => {
       'Checkpoint',
       'Configuration',
       'Audit log',
+      // DM.2: admins only; the page says when the API runs without demo tools.
+      'Demo',
     ]);
     unmount();
     renderAdmin(<AdminShell>content</AdminShell>, {

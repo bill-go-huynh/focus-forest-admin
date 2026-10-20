@@ -489,3 +489,49 @@ export const rateLimitRefusalsSchema = z.object({
   since: instant,
   items: z.array(z.object({ name: z.string(), limit: count, refused: count, keys: count })),
 });
+
+// DM.2 Demo tools (spec/demo/PLAN.md): local or demo-server only.
+export const demoStatusSchema = z.object({ enabled: z.boolean() });
+export const DEMO_PERSONAS = [
+  'main',
+  'comeback',
+  'recovery',
+  'friend-mai',
+  'friend-khoa',
+  'friend-linh',
+] as const;
+export type DemoPersona = (typeof DEMO_PERSONAS)[number];
+export const demoWorldSchema = z.object({
+  id: z.number(),
+  eventId: z.string(),
+  accounts: z.array(
+    z.object({
+      persona: z.enum(DEMO_PERSONAS),
+      email: z.string(),
+      userId: z.string(),
+      name: z.string(),
+    }),
+  ),
+});
+export type DemoWorld = z.infer<typeof demoWorldSchema>;
+export const demoWorldListSchema = z.object({ items: z.array(demoWorldSchema) });
+export const DEMO_CATEGORIES = [
+  'dailyGoalReminder',
+  'scheduledFocusReminder',
+  'streakReminder',
+  'eventStart',
+  'eventEndingSoon',
+  'friendInvite',
+  'focusRoomInvite',
+  'challengeUpdate',
+  'badgeUnlocked',
+  'monthlyRecapReady',
+] as const;
+export type DemoCategory = (typeof DEMO_CATEGORIES)[number];
+export const demoNotifyResultSchema = z.object({
+  category: z.string(),
+  status: z.enum(['sent', 'skipped', 'failed', 'pending']),
+  reason: z.string().nullable(),
+  title: z.string().nullable(),
+});
+export type DemoNotifyResult = z.infer<typeof demoNotifyResultSchema>;

@@ -24,6 +24,8 @@ const LINKS: { href: string; label: string; roles: readonly AdminRole[] }[] = [
   { href: '/checkpoint', label: 'Checkpoint', roles: ['admin', 'support'] },
   { href: '/config', label: 'Configuration', roles: ['admin', 'support'] },
   { href: '/audit-log', label: 'Audit log', roles: ['admin'] },
+  // DM.2: demo tools (local or demo server only; the page says when they are off).
+  { href: '/demo', label: 'Demo', roles: ['admin'] },
 ];
 
 /**

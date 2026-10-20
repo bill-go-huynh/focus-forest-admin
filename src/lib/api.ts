@@ -1,6 +1,12 @@
 import type { z } from 'zod';
 
 import {
+  demoNotifyResultSchema,
+  demoStatusSchema,
+  demoWorldListSchema,
+  demoWorldSchema,
+  type DemoCategory,
+  type DemoPersona,
   adminIdentitySchema,
   adminRoomSchema,
   auditPageSchema,
@@ -287,6 +293,33 @@ export function createAdminApi(options: AdminApiOptions) {
     clientErrors: (days: number) =>
       request(`/admin/client-errors${query({ days: String(days) })}`, clientErrorGroupsSchema),
     rateLimitRefusals: () => request('/admin/rate-limits', rateLimitRefusalsSchema),
+    // DM.2: demo tools (spec/demo/PLAN.md).
+    demoStatus: () => request('/admin/demo/status', demoStatusSchema),
+    demoWorlds: () => request('/admin/demo/worlds', demoWorldListSchema),
+    makeDemoWorld: (password: string, reason: string) =>
+      request('/admin/demo/worlds', demoWorldSchema, {
+        method: 'POST',
+        body: { password, reason },
+      }),
+    demoNotify: (world: number, persona: DemoPersona, category: DemoCategory) =>
+      request(`/admin/demo/worlds/${world}/notify`, demoNotifyResultSchema, {
+        method: 'POST',
+        body: { persona, category },
+      }),
+    demoSession: (world: number, persona: DemoPersona, minutes: number) =>
+      request(`/admin/demo/worlds/${world}/session`, null, {
+        method: 'POST',
+        body: { persona, minutes },
+      }),
+    demoRestToday: (world: number, persona: DemoPersona) =>
+      request(`/admin/demo/worlds/${world}/rest-today`, null, {
+        method: 'POST',
+        body: { persona },
+      }),
+    demoReact: (world: number, persona: DemoPersona) =>
+      request(`/admin/demo/worlds/${world}/react`, null, { method: 'POST', body: { persona } }),
+    demoFriendReady: (world: number) =>
+      request(`/admin/demo/worlds/${world}/friend-ready`, null, { method: 'POST', body: {} }),
     // D5.1: focus rooms.
     rooms: () => request('/admin/rooms', roomListSchema),
     closeRoom: (id: string, reason: string) =>
