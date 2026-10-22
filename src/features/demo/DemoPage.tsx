@@ -25,7 +25,7 @@ const SEEDED = [
   'Last month’s tree: the planting ceremony and the recap on first open',
   'This month’s tree, a 6-day streak and two earlier months in the forest',
   'Friends Mai, Khoa and Linh, followers, and reactions on the forest',
-  'A waiting room from Mai with Khoa ready',
+  'Two invitations from Linh: her waiting room and a challenge',
 ];
 
 /** Friends who react in turn, so each click shows a new face. */
@@ -331,7 +331,7 @@ function FriendActions({ world }: { world: DemoWorld }) {
           onClick={() =>
             void run(async () => {
               await api.demoRoom(world.id);
-              return 'Mai opened a new waiting room and invited you; Khoa is ready in it.';
+              return 'Linh opened a new waiting room and invited you.';
             })
           }
         >

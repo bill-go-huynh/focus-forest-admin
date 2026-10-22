@@ -237,7 +237,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     });
     renderAdmin(<DemoPage />, { fetch });
     fireEvent.click(await screen.findByRole('button', { name: 'Open a fresh waiting room' }));
-    expect(await screen.findByText(/Mai opened a new waiting room/)).toBeTruthy();
+    expect(await screen.findByText(/Linh opened a new waiting room/)).toBeTruthy();
     expect(
       requests.some((r) => r.method === 'POST' && r.path === '/admin/demo/worlds/3/room'),
     ).toBe(true);
