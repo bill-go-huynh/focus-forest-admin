@@ -6,8 +6,8 @@ import { fakeApi, nestError, type Recorded, type Reply } from '../test/fake-api'
 import { navigation, renderAdmin, session } from '../test/render';
 
 /**
- * DM.2 Demo tools (spec/demo/PLAN.md): make a demo world, see its accounts and what each one
- * shows, send any notification now, and let a friend join the presenter's room. Admins only;
+ * DM.2 Demo tools (spec/demo/PLAN.md): make a demo world on one email, then drive that one
+ * account with one-click actions (owner, 2026-10-22: one account on the phone, no other sign-ins). Admins only;
  * the page says when the API runs without them.
  */
 
@@ -96,7 +96,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     expect(screen.queryByRole('button', { name: 'Make a demo world' })).toBeNull();
   });
 
-  it('makes a world from one email, then lists its accounts, how each signs in, and what it shows', async () => {
+  it('makes a world from one email, then shows that one account and how to sign in', async () => {
     let worlds: unknown[] = [];
     const { fetch, requests } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
@@ -115,15 +115,65 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     });
     fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
 
-    const table = await screen.findByRole('table', { name: 'Demo world 3' });
-    expect(within(table).getByText('bill.huynh@gmail.com')).toBeTruthy();
-    expect(within(table).getByText('Google')).toBeTruthy();
-    expect(within(table).getAllByText('Password: focus-forest-demo').length).toBe(5);
-    expect(within(table).getByText(/planting ceremony/)).toBeTruthy();
+    const account = await screen.findByRole('region', { name: 'Demo account' });
+    expect(within(account).getByText('bill.huynh@gmail.com')).toBeTruthy();
+    expect(within(account).getByText(/Continue with Google/)).toBeTruthy();
+    // Only the presenter: the people around it are driven from here, never signed in to
+    // (owner, 2026-10-22).
+    expect(screen.queryByText(/demo3-friend-linh/)).toBeNull();
+    expect(screen.queryByText(/demo3-comeback/)).toBeNull();
+    expect(screen.queryByLabelText('Account')).toBeNull();
     expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
       reason: 'Demo',
       emails: { main: 'bill.huynh@gmail.com' },
     });
+  });
+
+  it('gives the password when the world uses a demo address', async () => {
+    const blank = {
+      ...WORLD,
+      accounts: WORLD.accounts.map((a) =>
+        a.persona === 'main'
+          ? {
+              ...a,
+              email: 'demo3@focusforest.test',
+              signIn: 'password',
+              password: 'focus-forest-demo',
+            }
+          : a,
+      ),
+    };
+    const { fetch } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': ok({ items: [blank] }),
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    const account = await screen.findByRole('region', { name: 'Demo account' });
+    expect(within(account).getByText('demo3@focusforest.test')).toBeTruthy();
+    expect(within(account).getByText(/focus-forest-demo/)).toBeTruthy();
+  });
+
+  it('acts on the newest world, and can switch to an older one', async () => {
+    const older = {
+      ...WORLD,
+      id: 2,
+      accounts: WORLD.accounts.map((a) =>
+        a.persona === 'main' ? { ...a, email: 'old@gmail.com' } : a,
+      ),
+    };
+    const { fetch, requests } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': ok({ items: [WORLD, older] }),
+      'POST /admin/demo/worlds/2/rest-today': ok({}, 201),
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    const account = await screen.findByRole('region', { name: 'Demo account' });
+    expect(within(account).getByText('bill.huynh@gmail.com')).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Demo world'), { target: { value: '2' } });
+    expect(await within(account).findByText('old@gmail.com')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Make today a rest day' }));
+    await screen.findByText('Today is a rest day.');
+    expect(requests.at(-1)?.path).toBe('/admin/demo/worlds/2/rest-today');
   });
 
   it('makes a world on a demo address when the email is left blank', async () => {
@@ -191,7 +241,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     ).toBe(true);
   });
 
-  it('sends a notification now and says what became of it', async () => {
+  it('sends any notification with one click and says what became of it', async () => {
     let reply: Reply = ok(
       {
         category: 'monthlyRecapReady',
@@ -207,12 +257,10 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
       'POST /admin/demo/worlds/3/notify': () => reply,
     });
     renderAdmin(<DemoPage />, { fetch });
-    await screen.findByRole('table', { name: 'Demo world 3' });
-    fireEvent.change(screen.getByLabelText('Notification'), {
-      target: { value: 'monthlyRecapReady' },
-    });
-    fireEvent.change(screen.getByLabelText('To'), { target: { value: 'main' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Send now' }));
+    await screen.findByRole('region', { name: 'Demo account' });
+    // One button per notification, no picker.
+    expect(screen.getAllByRole('button', { name: /^Send:/ }).length).toBe(10);
+    fireEvent.click(screen.getByRole('button', { name: 'Send: Monthly recap ready' }));
     expect(await screen.findByText('Sent: “Your September recap is ready”')).toBeTruthy();
     expect(requests.at(-1)?.body).toEqual({ persona: 'main', category: 'monthlyRecapReady' });
 
@@ -220,8 +268,9 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
       { category: 'badgeUnlocked', status: 'skipped', reason: 'no_device', title: null },
       201,
     );
-    fireEvent.click(screen.getByRole('button', { name: 'Send now' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Send: Badge unlocked' }));
     expect(await screen.findByText(/No phone is registered for this account/)).toBeTruthy();
+    expect(requests.at(-1)?.body).toEqual({ persona: 'main', category: 'badgeUnlocked' });
   });
 
   it('lets a friend join the presenter’s room, and says to open one first', async () => {
@@ -235,7 +284,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
       'POST /admin/demo/worlds/3/friend-ready': () => reply,
     });
     renderAdmin(<DemoPage />, { fetch });
-    await screen.findByRole('table', { name: 'Demo world 3' });
+    await screen.findByRole('region', { name: 'Demo account' });
     fireEvent.click(screen.getByRole('button', { name: 'Khoa joins my room and is ready' }));
     expect(await screen.findByText(/Open a room in Focus Together/)).toBeTruthy();
     reply = ok({ id: 'r1' }, 201);
@@ -243,7 +292,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     expect(await screen.findByText(/Khoa is in your room and ready/)).toBeTruthy();
   });
 
-  it('adds a session for an account, which the phone celebrates at once', async () => {
+  it('adds a session to the demo account, which the phone celebrates at once', async () => {
     let reply: Reply = ok({ id: 's1' }, 201);
     const { fetch, requests } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
@@ -251,13 +300,10 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
       'POST /admin/demo/worlds/3/session': () => reply,
     });
     renderAdmin(<DemoPage />, { fetch });
-    await screen.findByRole('table', { name: 'Demo world 3' });
-    fireEvent.change(screen.getByLabelText('Account'), { target: { value: 'main' } });
-    fireEvent.change(screen.getByLabelText('Minutes'), { target: { value: '25' } });
+    await screen.findByRole('region', { name: 'Demo account' });
+    expect((screen.getByLabelText('Minutes') as HTMLInputElement).value).toBe('25');
     fireEvent.click(screen.getByRole('button', { name: 'Add a finished session' }));
-    expect(
-      await screen.findByText('Added 25 minutes for Bill. The phone shows it now.'),
-    ).toBeTruthy();
+    expect(await screen.findByText('Added 25 minutes. The phone shows it now.')).toBeTruthy();
     expect(requests.at(-1)?.body).toEqual({ persona: 'main', minutes: 25 });
 
     reply = ok(
@@ -272,7 +318,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     expect(await screen.findByText(/wait 24 more minutes/)).toBeTruthy();
   });
 
-  it('makes today a rest day and has a friend react', async () => {
+  it('makes today a rest day, and friends take turns reacting', async () => {
     const { fetch, requests } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
       'GET /admin/demo/worlds': ok({ items: [WORLD] }),
@@ -280,16 +326,17 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
       'POST /admin/demo/worlds/3/react': ok({}, 201),
     });
     renderAdmin(<DemoPage />, { fetch });
-    await screen.findByRole('table', { name: 'Demo world 3' });
-    fireEvent.change(screen.getByLabelText('Account'), { target: { value: 'main' } });
+    await screen.findByRole('region', { name: 'Demo account' });
     fireEvent.click(screen.getByRole('button', { name: 'Make today a rest day' }));
-    expect(await screen.findByText('Today is a rest day for Bill.')).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('Friend'), { target: { value: 'friend-linh' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Friend reacts to the forest' }));
-    expect(await screen.findByText('Linh reacted to Bill’s forest.')).toBeTruthy();
+    expect(await screen.findByText('Today is a rest day.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'A friend reacts to the forest' }));
+    expect(await screen.findByText('Linh reacted to your forest.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'A friend reacts to the forest' }));
+    expect(await screen.findByText('Mai reacted to your forest.')).toBeTruthy();
     expect(requests.filter((r) => r.method === 'POST').map((r) => r.body)).toEqual([
       { persona: 'main' },
       { persona: 'friend-linh' },
+      { persona: 'friend-mai' },
     ]);
   });
 

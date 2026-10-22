@@ -3,7 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 
-import { Button, ErrorMessage, Loading, PageTitle, Panel, SectionTitle } from '../../components/ui';
+import { Button, ErrorMessage, Loading, PageTitle, Panel } from '../../components/ui';
 import { AdminApiError } from '../../lib/api';
 import {
   DEMO_CATEGORIES,
@@ -20,35 +20,16 @@ import { useAdminApi } from '../../lib/session';
  * which belongs on a local or demo server, never where real people use the app.
  */
 
-const PERSONA: Record<DemoPersona, { label: string; name: string; shows: string }> = {
-  main: {
-    label: 'Presenter',
-    name: 'Bill',
-    shows:
-      'First open: the planting ceremony and last month’s recap. Then one 25-minute session: a Mature Tree, the 50 Hours badge with Maple, and a 7-day streak with Pine; the demo Community Tree reaches its first milestone.',
-  },
-  comeback: {
-    label: 'Comeback',
-    name: 'An',
-    shows: 'The tree is Resting quietly after three days away; one session wakes it (“Waking up”).',
-  },
-  recovery: {
-    label: 'Recovery',
-    name: 'Vy',
-    shows: 'Missed only yesterday after 4 days: one session today offers “Keep my streak”.',
-  },
-  'friend-mai': {
-    label: 'Friend',
-    name: 'Mai',
-    shows: 'Follows the presenter back; invites to challenges and rooms.',
-  },
-  'friend-khoa': {
-    label: 'Friend',
-    name: 'Khoa',
-    shows: 'Joins the presenter’s room and gets ready.',
-  },
-  'friend-linh': { label: 'Friend', name: 'Linh', shows: 'Reacts to the presenter’s forest.' },
-};
+/** What a fresh world gives the demo account (seeded by the API, spec/demo/PLAN.md). */
+const SEEDED = [
+  'Last month’s tree: the planting ceremony and the recap on first open',
+  'This month’s tree, a 6-day streak and two earlier months in the forest',
+  'Friends Mai, Khoa and Linh, followers, and reactions on the forest',
+  'A waiting room from Mai with Khoa ready, and a demo event with a Community Tree',
+];
+
+/** Friends who react in turn, so each click shows a new face. */
+const REACTORS = ['friend-linh', 'friend-mai', 'friend-khoa'] as const;
 
 const CATEGORY: Record<DemoCategory, string> = {
   dailyGoalReminder: 'Daily goal reminder',
@@ -126,7 +107,7 @@ function DemoWorlds() {
     <div className="space-y-8">
       <Panel>
         <form onSubmit={(e) => void make(e)} className="max-w-2xl space-y-3">
-          <h2 className="text-lg font-semibold">New demo world</h2>
+          <h2 className="text-lg font-semibold">Seed a demo account</h2>
           <p className="text-sm text-ink-2">
             One account with months of history, friends, followers, a waiting room and a demo event,
             ready to show every step. Each demo uses a fresh world: what it shows happens once, as
@@ -165,65 +146,74 @@ function DemoWorlds() {
       ) : worlds.data.items.length === 0 ? (
         <p className="text-sm text-muted">No demo world yet.</p>
       ) : (
-        worlds.data.items.map((world) => <World key={world.id} world={world} />)
+        <World worlds={worlds.data.items} />
       )}
     </div>
   );
 }
 
-function World({ world }: { world: DemoWorld }) {
-  const title = `Demo world ${world.id}`;
+function World({ worlds }: { worlds: DemoWorld[] }) {
+  const pickId = useId();
+  const [chosen, setChosen] = useState<number | null>(null);
+  const world = worlds.find((w) => w.id === chosen) ?? worlds[0]!;
+  const main = world.accounts.find((a) => a.persona === 'main');
   return (
-    <section className="space-y-4">
-      <SectionTitle>{title}</SectionTitle>
-      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
-        <table aria-label={title} className="w-full text-left text-sm">
-          <thead className="bg-paper-2 text-xs uppercase tracking-wide text-muted">
-            <tr>
-              <th className="px-3 py-2.5">Account</th>
-              <th className="px-3 py-2.5">Email</th>
-              <th className="px-3 py-2.5">Sign in</th>
-              <th className="px-3 py-2.5">What it shows</th>
-            </tr>
-          </thead>
-          <tbody>
-            {world.accounts.map((a) => (
-              <tr key={a.userId} className="border-t border-line align-top">
-                <td className="px-3 py-2.5 font-medium">{`${PERSONA[a.persona].label}: ${a.name}`}</td>
-                <td className="px-3 py-2.5 font-mono text-xs">{a.email}</td>
-                <td className="px-3 py-2.5">
-                  <span
-                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
-                      a.signIn === 'google'
-                        ? 'bg-forest-soft text-forest-deep'
-                        : 'bg-amber-soft text-amber'
-                    }`}
-                  >
-                    {a.signIn === 'google' ? 'Google' : `Password: ${a.password ?? ''}`}
-                  </span>
-                </td>
-                <td className="px-3 py-2.5 text-ink-2">{PERSONA[a.persona].shows}</td>
-              </tr>
+    <div className="space-y-4">
+      <section aria-label="Demo account">
+        <Panel>
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="space-y-1">
+              <h2 className="text-lg font-semibold">Demo account</h2>
+              <p className="font-mono text-sm">{main?.email}</p>
+              <p className="text-sm text-ink-2">
+                {main?.signIn === 'google'
+                  ? 'On the phone: Sign in, then Continue with Google with this email.'
+                  : `On the phone: Sign in with this email and the password ${main?.password ?? ''}.`}
+              </p>
+            </div>
+            {worlds.length > 1 ? (
+              <div>
+                <label htmlFor={pickId} className="block text-xs">
+                  Demo world
+                </label>
+                <select
+                  id={pickId}
+                  className={input}
+                  value={world.id}
+                  onChange={(e) => setChosen(Number(e.target.value))}
+                >
+                  {worlds.map((w) => (
+                    <option key={w.id} value={w.id}>{`World ${w.id}: ${
+                      w.accounts.find((a) => a.persona === 'main')?.email ?? ''
+                    }`}</option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
+          </div>
+          <ul className="mt-3 list-disc space-y-0.5 pl-5 text-sm text-ink-2">
+            {SEEDED.map((line) => (
+              <li key={line}>{line}</li>
             ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="text-xs text-muted">
-        Keep the app open on the phone, signed in to the account: what you do below shows there at
-        once.
-      </p>
+          </ul>
+          <p className="mt-3 text-xs text-muted">
+            Keep the app open on the phone, signed in to this account: every button below shows
+            there at once. Friends are driven from here; never sign in to them.
+          </p>
+        </Panel>
+      </section>
       <div className="grid gap-4 lg:grid-cols-2">
         <Panel>
-          <AccountActions world={world} />
+          <TreeActions key={world.id} world={world} />
         </Panel>
         <Panel>
-          <NotifyActions world={world} />
+          <FriendActions key={world.id} world={world} />
         </Panel>
         <Panel>
-          <TogetherActions world={world} />
+          <NotifyActions key={world.id} world={world} />
         </Panel>
       </div>
-    </section>
+    </div>
   );
 }
 
@@ -249,61 +239,18 @@ function useOutcome() {
   return { run, busy, line };
 }
 
-function PersonaSelect({
-  id,
-  value,
-  onChange,
-  options,
-  world,
-}: {
-  id: string;
-  value: DemoPersona;
-  onChange: (p: DemoPersona) => void;
-  options: readonly DemoPersona[];
-  world: DemoWorld;
-}) {
-  const name = (p: DemoPersona) => world.accounts.find((a) => a.persona === p)?.name ?? p;
-  return (
-    <select
-      id={id}
-      className={input}
-      value={value}
-      onChange={(e) => onChange(e.target.value as DemoPersona)}
-    >
-      {options.map((p) => (
-        <option key={p} value={p}>{`${name(p)} (${PERSONA[p].label})`}</option>
-      ))}
-    </select>
-  );
-}
-
-const PRESENTERS = ['main', 'comeback', 'recovery'] as const;
-const FRIENDS = ['friend-mai', 'friend-khoa', 'friend-linh'] as const;
-
-function AccountActions({ world }: { world: DemoWorld }) {
+function TreeActions({ world }: { world: DemoWorld }) {
   const api = useAdminApi();
   const id = useId();
-  const [persona, setPersona] = useState<DemoPersona>('main');
   const [minutes, setMinutes] = useState('25');
-  const [friend, setFriend] = useState<DemoPersona>('friend-mai');
   const { run, busy, line } = useOutcome();
-  const name = (p: DemoPersona) => world.accounts.find((a) => a.persona === p)?.name ?? p;
   return (
-    <div className="space-y-2">
-      <h3 className="text-base font-semibold">Change an account</h3>
+    <div className="space-y-3">
+      <h3 className="text-base font-semibold">Tree and streak</h3>
+      <p className="text-xs text-muted">
+        A finished session grows the tree and the streak, with the celebration on the phone.
+      </p>
       <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <label htmlFor={`${id}-who`} className="block text-xs">
-            Account
-          </label>
-          <PersonaSelect
-            id={`${id}-who`}
-            value={persona}
-            onChange={setPersona}
-            options={PRESENTERS}
-            world={world}
-          />
-        </div>
         <div>
           <label htmlFor={`${id}-min`} className="block text-xs">
             Minutes
@@ -317,14 +264,15 @@ function AccountActions({ world }: { world: DemoWorld }) {
           />
         </div>
         <Button
+          tone="primary"
           disabled={busy}
           onClick={() =>
             void run(async () => {
               const m = Number(minutes);
               if (!Number.isInteger(m) || m < 5 || m > 180)
                 throw new AdminApiError('http', 'Minutes are 5 to 180.');
-              await api.demoSession(world.id, persona, m);
-              return `Added ${m} minutes for ${name(persona)}. The phone shows it now.`;
+              await api.demoSession(world.id, 'main', m);
+              return `Added ${m} minutes. The phone shows it now.`;
             })
           }
         >
@@ -334,37 +282,68 @@ function AccountActions({ world }: { world: DemoWorld }) {
           disabled={busy}
           onClick={() =>
             void run(async () => {
-              await api.demoRestToday(world.id, persona);
-              return `Today is a rest day for ${name(persona)}.`;
+              await api.demoRestToday(world.id, 'main');
+              return 'Today is a rest day.';
             })
           }
         >
           Make today a rest day
         </Button>
-        <div>
-          <label htmlFor={`${id}-friend`} className="block text-xs">
-            Friend
-          </label>
-          <PersonaSelect
-            id={`${id}-friend`}
-            value={friend}
-            onChange={setFriend}
-            options={FRIENDS}
-            world={world}
-          />
-        </div>
+      </div>
+      {line}
+    </div>
+  );
+}
+
+function FriendActions({ world }: { world: DemoWorld }) {
+  const api = useAdminApi();
+  const [turn, setTurn] = useState(0);
+  const { run, busy, line } = useOutcome();
+  const name = (p: DemoPersona) => world.accounts.find((a) => a.persona === p)?.name ?? p;
+  return (
+    <div className="space-y-3">
+      <h3 className="text-base font-semibold">Friends and Focus Together</h3>
+      <div className="flex flex-wrap gap-3">
         <Button
           disabled={busy}
           onClick={() =>
             void run(async () => {
+              const friend = REACTORS[turn % REACTORS.length]!;
               await api.demoReact(world.id, friend);
-              return `${name(friend)} reacted to ${name('main')}’s forest.`;
+              setTurn((t) => t + 1);
+              return `${name(friend)} reacted to your forest.`;
             })
           }
         >
-          Friend reacts to the forest
+          A friend reacts to the forest
+        </Button>
+        <Button
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              await api.demoRoom(world.id);
+              return 'Mai opened a new waiting room and invited you; Khoa is ready in it.';
+            })
+          }
+        >
+          Open a fresh waiting room
+        </Button>
+        <Button
+          disabled={busy}
+          onClick={() =>
+            void run(async () => {
+              await api.demoFriendReady(world.id);
+              return 'Khoa is in your room and ready: when you are ready too, the countdown starts.';
+            })
+          }
+        >
+          Khoa joins my room and is ready
         </Button>
       </div>
+      <p className="text-xs text-muted">
+        The waiting room lasts 2 hours: open a fresh one just before the demo. Or create a room on
+        the phone and have Khoa join it.
+      </p>
       {line}
     </div>
   );
@@ -372,96 +351,31 @@ function AccountActions({ world }: { world: DemoWorld }) {
 
 function NotifyActions({ world }: { world: DemoWorld }) {
   const api = useAdminApi();
-  const id = useId();
-  const [category, setCategory] = useState<DemoCategory>('monthlyRecapReady');
-  const [persona, setPersona] = useState<DemoPersona>('main');
   const { run, busy, line } = useOutcome();
   const describe = (r: DemoNotifyResult) =>
     r.status === 'sent'
       ? `Sent: “${r.title ?? ''}”`
       : `Not sent: ${REASONS[r.reason ?? ''] ?? r.reason ?? r.status}`;
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <h3 className="text-base font-semibold">Send a notification now</h3>
-      <div className="flex flex-wrap items-end gap-3">
-        <div>
-          <label htmlFor={`${id}-cat`} className="block text-xs">
-            Notification
-          </label>
-          <select
-            id={`${id}-cat`}
-            className={input}
-            value={category}
-            onChange={(e) => setCategory(e.target.value as DemoCategory)}
+      <p className="text-xs text-muted">
+        Arrives on the phone in a few seconds; tapping it opens the matching screen.
+      </p>
+      <div className="flex flex-wrap gap-2">
+        {DEMO_CATEGORIES.map((c) => (
+          <Button
+            key={c}
+            disabled={busy}
+            label={`Send: ${CATEGORY[c]}`}
+            onClick={() =>
+              void run(async () => describe(await api.demoNotify(world.id, 'main', c)))
+            }
           >
-            {DEMO_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {CATEGORY[c]}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label htmlFor={`${id}-to`} className="block text-xs">
-            To
-          </label>
-          <PersonaSelect
-            id={`${id}-to`}
-            value={persona}
-            onChange={setPersona}
-            options={PRESENTERS}
-            world={world}
-          />
-        </div>
-        <Button
-          disabled={busy}
-          onClick={() =>
-            void run(async () => describe(await api.demoNotify(world.id, persona, category)))
-          }
-        >
-          Send now
-        </Button>
+            {CATEGORY[c]}
+          </Button>
+        ))}
       </div>
-      {line}
-    </div>
-  );
-}
-
-function TogetherActions({ world }: { world: DemoWorld }) {
-  const api = useAdminApi();
-  const { run, busy, line } = useOutcome();
-  return (
-    <div className="space-y-2">
-      <h3 className="text-base font-semibold">Focus Together</h3>
-      <p className="text-xs text-muted">
-        The world starts with a waiting room Mai opened, the presenter invited and Khoa ready. A
-        waiting room lasts 2 hours: open a fresh one before the demo.
-      </p>
-      <Button
-        disabled={busy}
-        onClick={() =>
-          void run(async () => {
-            await api.demoRoom(world.id);
-            return 'Mai opened a new waiting room and invited you; Khoa is ready in it.';
-          })
-        }
-      >
-        Open a fresh waiting room
-      </Button>
-      <p className="text-xs text-muted">
-        Or open a room on the phone (Together, Create a room), then:
-      </p>
-      <Button
-        disabled={busy}
-        onClick={() =>
-          void run(async () => {
-            await api.demoFriendReady(world.id);
-            return 'Khoa is in your room and ready: when you are ready too, the countdown starts.';
-          })
-        }
-      >
-        Khoa joins my room and is ready
-      </Button>
       {line}
     </div>
   );
