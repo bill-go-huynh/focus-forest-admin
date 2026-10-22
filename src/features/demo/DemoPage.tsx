@@ -25,7 +25,7 @@ const SEEDED = [
   'Last month’s tree: the planting ceremony and the recap on first open',
   'This month’s tree, a 6-day streak and two earlier months in the forest',
   'Friends Mai, Khoa and Linh, followers, and reactions on the forest',
-  'A waiting room from Mai with Khoa ready, and a demo event with a Community Tree',
+  'A waiting room from Mai with Khoa ready',
 ];
 
 /** Friends who react in turn, so each click shows a new face. */
@@ -35,8 +35,6 @@ const CATEGORY: Record<DemoCategory, string> = {
   dailyGoalReminder: 'Daily goal reminder',
   scheduledFocusReminder: 'Scheduled focus reminder',
   streakReminder: 'Streak reminder',
-  eventStart: 'Event starts',
-  eventEndingSoon: 'Event ending soon',
   friendInvite: 'Friend invites to a challenge',
   focusRoomInvite: 'Friend invites to a focus room',
   challengeUpdate: 'A friend joined your challenge',
@@ -109,9 +107,8 @@ function DemoWorlds() {
         <form onSubmit={(e) => void make(e)} className="max-w-2xl space-y-3">
           <h2 className="text-lg font-semibold">Seed a demo account</h2>
           <p className="text-sm text-ink-2">
-            One account with months of history, friends, followers, a waiting room and a demo event,
-            ready to show every step. Each demo uses a fresh world: what it shows happens once, as
-            in the app.
+            One account with months of history, friends, followers and a waiting room, ready to show
+            every step. Each demo uses a fresh world: what it shows happens once, as in the app.
           </p>
           <label htmlFor={emailId} className="block text-sm font-medium">
             Email to seed

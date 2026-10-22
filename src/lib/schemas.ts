@@ -243,63 +243,6 @@ export const catalogListSchema = z.object({ items: z.array(catalogItemSchema) })
 // D6.2: live operations (focus-forest-api A6.5 `/admin/live`).
 export const liveStatusSchema = z.enum(['planned', 'active', 'retired']);
 
-export const liveEventSummarySchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  status: liveStatusSchema,
-  startsAt: instant,
-  endsAt: instant,
-  leaderboard: z.boolean(),
-  participants: count,
-  locked: z.boolean(),
-});
-export type LiveEventSummary = z.infer<typeof liveEventSummarySchema>;
-export const liveEventListSchema = z.object({ items: z.array(liveEventSummarySchema) });
-
-export const liveEventSchema = liveEventSummarySchema.extend({
-  description: z.string(),
-  artworkId: z.string(),
-  entryMinSessions: count,
-  teams: z.array(z.object({ id: z.string(), name: z.string() })),
-  missions: z.array(
-    z.object({
-      id: z.string(),
-      measure: z.string(),
-      target: count,
-      dailyMinutes: count,
-      name: z.string(),
-      description: z.string(),
-    }),
-  ),
-  milestones: z.array(
-    z.object({
-      id: z.string(),
-      name: z.string(),
-      requiredMissions: count,
-      badgeId: z.string().nullable(),
-      cosmeticId: z.string().nullable(),
-      traitId: z.string().nullable(),
-    }),
-  ),
-  communityTree: z
-    .object({
-      name: z.string(),
-      artworkId: z.string(),
-      totalMinutes: count,
-      contributors: count,
-      milestones: z.array(
-        z.object({
-          stage: z.string(),
-          thresholdMinutes: count,
-          badgeId: z.string().nullable(),
-          reachedAt: instant.nullable(),
-        }),
-      ),
-    })
-    .nullable(),
-});
-export type LiveEvent = z.infer<typeof liveEventSchema>;
-
 export const themeSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -316,7 +259,8 @@ export type Theme = z.infer<typeof themeSchema>;
 export const themeListSchema = z.object({ items: z.array(themeSchema) });
 
 export const staffBoardSchema = z.object({
-  scope: z.enum(['global', 'event']),
+  // Global boards only (event boards were removed, owner 2026-10-22).
+  scope: z.string(),
   period: z.object({ kind: z.string(), startDate: localDate, endDate: localDate }),
   rows: z.array(
     z.object({
@@ -330,17 +274,6 @@ export const staffBoardSchema = z.object({
       score: z.number(),
     }),
   ),
-  teams: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        rank: count,
-        score: z.number(),
-        members: count,
-      }),
-    )
-    .nullable(),
 });
 export type StaffBoard = z.infer<typeof staffBoardSchema>;
 
@@ -503,7 +436,6 @@ export const DEMO_PERSONAS = [
 export type DemoPersona = (typeof DEMO_PERSONAS)[number];
 export const demoWorldSchema = z.object({
   id: z.number(),
-  eventId: z.string(),
   accounts: z.array(
     z.object({
       persona: z.enum(DEMO_PERSONAS),
@@ -522,8 +454,6 @@ export const DEMO_CATEGORIES = [
   'dailyGoalReminder',
   'scheduledFocusReminder',
   'streakReminder',
-  'eventStart',
-  'eventEndingSoon',
   'friendInvite',
   'focusRoomInvite',
   'challengeUpdate',

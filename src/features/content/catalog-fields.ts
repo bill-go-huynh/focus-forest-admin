@@ -31,9 +31,10 @@ const SOURCE: FieldSpec = {
   name: 'source',
   label: 'Source',
   type: 'select',
-  options: ['achievement', 'event', 'season'],
+  // No 'event' source: events were removed from the product (owner, 2026-10-22).
+  options: ['achievement', 'season'],
   editable: false,
-  initial: 'event',
+  initial: 'achievement',
 };
 const WINDOW: FieldSpec[] = [
   {
@@ -103,9 +104,9 @@ export const CATALOG_FIELDS: Record<CatalogKind, FieldSpec[]> = {
       name: 'category',
       label: 'Category',
       type: 'select',
-      options: ['focus', 'consistency', 'time_based', 'social', 'event', 'rare'],
+      options: ['focus', 'consistency', 'time_based', 'social', 'rare'],
       editable: true,
-      initial: 'event',
+      initial: 'focus',
     },
     RARITY,
     SOURCE,
@@ -129,7 +130,6 @@ export const CATALOG_FIELDS: Record<CatalogKind, FieldSpec[]> = {
         'sessions_before_7',
         'sessions_after_22',
         'full_weekends',
-        'community_contributions',
       ],
       editable: true,
       initial: 'counted_sessions',

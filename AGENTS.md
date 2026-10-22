@@ -15,7 +15,7 @@ Workspace rules in `../AGENTS.md` also apply. These repo rules govern implementa
 
 The admin tool is part of the full product and is built in slices (`../docs/09_ADMIN_PRODUCT.md`):
 - **Early admin:** user lookup, support actions, session diagnostics, read-only configuration, audit log (before the Core Loop Checkpoint); reports and moderation (required when Social launches in Phase 11); room oversight (Phase 12)
-- **Later admin (Phase 19, slices pulled forward when needed):** badges, achievements, tree variants, cosmetics, reward definitions, events and missions, Community Tree, seasonal content, leaderboards, configuration versioning
+- **Later admin (Phase 19, slices pulled forward when needed):** badges, achievements, tree variants, cosmetics, reward definitions, seasonal content, leaderboards, configuration versioning
 
 ## Rules
 
@@ -60,12 +60,9 @@ The **early admin** (CR.5, Core Loop Checkpoint readiness, `../spec/checkpoint/`
 
 **D6.2 live operations** (Phase 6, docs/09 later admin, `../spec/phase-6/D6.2.md`):
 - Role `admin` and `content` see Live after Content.
-- `src/features/live/LivePage` (`/live`), three tabs:
-  - **Events:** a table (window, people, "Locked") linking to `/live/events/[id]`, a calendar by UTC month (`eventCalendar`), and "New event".
+- `src/features/live/LivePage` (`/live`), two tabs (Events, missions, teams, and the Community Tree were removed from the product, owner 2026-10-22; no `/live/events` route, no event boards, no `eventStart`/`eventEndingSoon` demo notifications):
   - **Seasonal themes:** each hemisphere's schedule (`themeSchedule`: themes for it and for both, gaps as "No theme", overlaps named, retired left out); a table with Edit, and Delete only before a theme starts; `ThemeForm` locks the start, hemisphere, and rewards once started.
-  - **Leaderboards:** global weekly or monthly, or an event with a board (teams shown); "Exclude" and "Restore" confirmed with a reason; the excluded accounts.
-- `EventDetail` (`/live/events/[id]`): the Community Tree monitor (minutes, contributors, each stage reached or minutes to go), `EventEditor`, and "Delete event" only while nobody joined.
-- `EventEditor`: teams, missions, milestones, and Community Tree as row lists (`fields.tsx` `Rows`). Once anyone joined, the start, entry condition, and every list are disabled with "Locked: people have taken part."; the end can only move later. An edit sends only changed fields (`changedFields`); a served milestone's cosmetic reward and trait are read back as the API takes them (`eventFormValues`).
+  - **Leaderboards:** global weekly or monthly; "Exclude" and "Restore" confirmed with a reason; the excluded accounts.
 
 **D6.3 configuration and operations** (Phase 6, docs/09 → Configuration, support actions, audit log; `../spec/phase-6/D6.3.md`):
 - `/config`: support reads the active values only. Admins also get `ConfigVersions`:

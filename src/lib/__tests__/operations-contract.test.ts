@@ -10,7 +10,6 @@ import {
   configVersionSchema,
   exclusionListSchema,
   grantSchema,
-  liveEventSchema,
   notificationDiagnosticsSchema,
   staffBoardSchema,
   themeListSchema,
@@ -20,17 +19,21 @@ import {
  * X6 operations contract parity: every Phase 6 admin answer the web app reads (D6.1–D6.3),
  * captured from the real API (focus-forest-api test/x6/operations-journey.int-spec.ts, an
  * identical copy of the same file), parsed with the schema the app uses. Fields the app does not
- * read are listed exactly (the values an activation answers); refusals are read by status, code, and their problems.
+ * read are listed exactly (the values an activation answers).
  */
 
 type Name = keyof typeof contract;
-const ERRORS = ['eventLocked'] as const;
-type Answer = Exclude<Name, (typeof ERRORS)[number]>;
+/**
+ * Events and the Community Tree were removed (owner, 2026-10-22). The capture is byte-identical
+ * with focus-forest-api and still carries the event answers until the API regenerates it; the
+ * web app reads none of them, so they are skipped here (and may be absent).
+ */
+const RETIRED: readonly string[] = ['event', 'eventLocked'];
+type Answer = Exclude<Name, 'event' | 'eventLocked'>;
 
 const SCHEMAS: Record<Answer, z.ZodType> = {
   catalog: catalogListSchema,
   themes: themeListSchema,
-  event: liveEventSchema,
   board: staffBoardSchema,
   exclusions: exclusionListSchema,
   versions: configVersionListSchema,
@@ -58,7 +61,8 @@ function unread(input: unknown, parsed: unknown, path = ''): string[] {
 
 describe('X6 operations contract: the Phase 6 admin answers parse with the web app’s schemas', () => {
   it('covers every captured answer', () => {
-    expect(Object.keys(contract).sort()).toEqual([...Object.keys(SCHEMAS), ...ERRORS].sort());
+    const captured = Object.keys(contract).filter((name) => !RETIRED.includes(name));
+    expect(captured.sort()).toEqual(Object.keys(SCHEMAS).sort());
   });
 
   it.each(Object.keys(SCHEMAS) as Answer[])('%s', (name) => {
@@ -74,24 +78,14 @@ describe('X6 operations contract: the Phase 6 admin answers parse with the web a
       ]),
     );
     // Activation answers the version with its values; the page reads the active configuration
-    // again instead.
+    // again instead. An event board's teams (in a capture from before 2026-10-22) are not read.
+    const board = contract.board as Record<string, unknown>;
     expect(
       Object.fromEntries(Object.entries(ignored).filter(([, keys]) => keys.length > 0)),
-    ).toEqual({ activated: ['.values'] });
-  });
-
-  it('reads a locked edit by status and code, with every problem', () => {
-    expect(contract.eventLocked).toMatchObject({
-      statusCode: 422,
-      code: 'invalid_content',
-      problems: ['missions is locked: people have taken part.'],
-    });
+    ).toEqual({ activated: ['.values'], ...('teams' in board ? { board: ['.teams'] } : {}) });
   });
 
   it('keeps the journey the screens bind to', () => {
-    const event = liveEventSchema.parse(contract.event);
-    expect(event).toMatchObject({ locked: true, participants: 1 });
-    expect(event.communityTree).toMatchObject({ totalMinutes: 300, contributors: 1 });
     expect(configDiffSchema.parse(contract.diff).changes).toEqual([
       { key: 'growth.dailySoftCap', active: 240, proposed: 120 },
     ]);

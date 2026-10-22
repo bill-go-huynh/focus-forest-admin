@@ -91,5 +91,5 @@ const LIVE_STATUSES: Record<string, string> = {
   active: 'Active',
   retired: 'Retired',
 };
-/** A content definition's, event's, or theme's status. */
+/** A content definition's or theme's status. */
 export const liveStatusLabel = (status: string) => LIVE_STATUSES[status] ?? status;

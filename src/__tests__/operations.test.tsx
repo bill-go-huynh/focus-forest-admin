@@ -224,7 +224,7 @@ const DIAGNOSTICS = {
   focusUntil: '2026-10-13T10:25:00.000Z',
   enabled: [
     { category: 'daily_goal', time: '20:00' },
-    { category: 'event_start', time: null },
+    { category: 'badge_unlocked', time: null },
   ],
   recent: [
     {
@@ -236,8 +236,8 @@ const DIAGNOSTICS = {
       sentAt: null,
     },
     {
-      category: 'event_start',
-      title: 'Autumn Focus has begun',
+      category: 'badge_unlocked',
+      title: 'A new badge for your forest',
       status: 'sent',
       reason: null,
       notBefore: '2026-10-12T09:00:00.000Z',
@@ -265,7 +265,9 @@ describe('a user’s operations (D6.3)', { timeout: 15_000 }, () => {
     expect(within(devices).getByText('ExponentPushToken[abc…456]')).toBeDefined();
     expect(within(devices).getByText('ios')).toBeDefined();
     expect(within(section).getByText('Focusing until 2026-10-13 10:25 UTC')).toBeDefined();
-    expect(within(section).getByText('Turned on: daily_goal (20:00), event_start')).toBeDefined();
+    expect(
+      within(section).getByText('Turned on: daily_goal (20:00), badge_unlocked'),
+    ).toBeDefined();
     const recent = within(section).getByRole('table', { name: 'Recent notifications' });
     const skipped = within(recent).getByText('A little time for your tree?').closest('tr')!;
     expect(within(skipped).getByText('skipped')).toBeDefined();

@@ -16,7 +16,7 @@ const LINKS: { href: string; label: string; roles: readonly AdminRole[] }[] = [
   { href: '/rooms', label: 'Rooms', roles: ['admin', 'moderator'] },
   // D6.1 (docs/09 later admin, owner decision 8): content definitions for admins and content staff.
   { href: '/content', label: 'Content', roles: ['admin', 'content'] },
-  // D6.2 (docs/09 later admin): events, seasonal themes, and leaderboards.
+  // D6.2 (docs/09 later admin): seasonal themes and leaderboards (events removed, owner 2026-10-22).
   { href: '/live', label: 'Live', roles: ['admin', 'content'] },
   // D7.1: leaderboard integrity (who runs the boards) and app errors (who supports people).
   { href: '/integrity', label: 'Integrity', roles: ['admin', 'content'] },

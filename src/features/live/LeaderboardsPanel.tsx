@@ -7,7 +7,6 @@ import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Button, Cell, ErrorMessage, Loading, SectionTitle, Table } from '../../components/ui';
 import type { StaffBoardQuery } from '../../lib/api';
 import { instantLabel, personLabel } from '../../lib/format';
-import type { LiveEventSummary } from '../../lib/schemas';
 import { useAdminApi } from '../../lib/session';
 
 /** "Ada (@ada)": a board row's person, as the board shows them. */
@@ -18,10 +17,10 @@ const rowName = (person: { username: string | null; displayName: string | null; 
 
 /**
  * Leaderboards as staff see them (D6.2; docs/09 "view, and exclude abusive accounts"): global
- * by week or month, or an event's board with its teams. Excluding takes the account off every
- * board and out of every team score until restored; both carry a reason the API audits.
+ * by week or month. Excluding takes the account off every board until restored; both carry a
+ * reason the API audits.
  */
-export function LeaderboardsPanel({ events }: { events: LiveEventSummary[] }) {
+export function LeaderboardsPanel() {
   const api = useAdminApi();
   const queryClient = useQueryClient();
   const selectId = useId();
@@ -29,16 +28,9 @@ export function LeaderboardsPanel({ events }: { events: LiveEventSummary[] }) {
   const [excluding, setExcluding] = useState<{ id: string; name: string } | null>(null);
   const [restoring, setRestoring] = useState<{ id: string; name: string } | null>(null);
 
-  const boards = events.filter((event) => event.leaderboard);
-  const [scope, value] = choice.split(':') as ['global' | 'event', string];
-  const query: StaffBoardQuery =
-    scope === 'event'
-      ? { scope, eventId: value }
-      : { scope, period: value as 'weekly' | 'monthly' };
-  const title =
-    scope === 'event'
-      ? `${boards.find((event) => event.id === value)?.name ?? value} board`
-      : `Global ${value} board`;
+  const period = choice.split(':')[1] as StaffBoardQuery['period'];
+  const query: StaffBoardQuery = { scope: 'global', period };
+  const title = `Global ${period} board`;
 
   const board = useQuery({
     queryKey: ['live', 'board', choice],
@@ -67,11 +59,6 @@ export function LeaderboardsPanel({ events }: { events: LiveEventSummary[] }) {
         >
           <option value="global:weekly">Global, weekly</option>
           <option value="global:monthly">Global, monthly</option>
-          {boards.map((event) => (
-            <option key={event.id} value={`event:${event.id}`}>
-              {`Event: ${event.name}`}
-            </option>
-          ))}
         </select>
       </div>
 
@@ -82,18 +69,6 @@ export function LeaderboardsPanel({ events }: { events: LiveEventSummary[] }) {
       ) : (
         <>
           <p className="mb-2 text-sm">{`${board.data.period.startDate} – ${board.data.period.endDate}`}</p>
-          {board.data.teams ? (
-            <Table head={['Rank', 'Team', 'Score', 'Members']} label="Teams">
-              {board.data.teams.map((team) => (
-                <tr key={team.id}>
-                  <Cell>{team.rank}</Cell>
-                  <Cell>{team.name}</Cell>
-                  <Cell>{team.score}</Cell>
-                  <Cell>{team.members}</Cell>
-                </tr>
-              ))}
-            </Table>
-          ) : null}
           {board.data.rows.length === 0 ? (
             <p className="text-sm">Nobody is on this board yet.</p>
           ) : (
@@ -148,7 +123,7 @@ export function LeaderboardsPanel({ events }: { events: LiveEventSummary[] }) {
       {excluding ? (
         <ConfirmDialog
           title={`Exclude ${excluding.name} from every board?`}
-          description="They keep using the app; no board shows them and no team counts them until restored."
+          description="They keep using the app; no board shows them until restored."
           action="Exclude"
           onConfirm={async (reason) => {
             await api.exclude(excluding.id, reason);

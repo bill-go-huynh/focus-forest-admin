@@ -98,7 +98,7 @@ export function IntegrityPage() {
       ) : action?.kind === 'exclude' ? (
         <ConfirmDialog
           title={`Exclude ${action.email} from every board?`}
-          description="They keep using the app; no board shows them and no team counts them until restored (Live → Leaderboards)."
+          description="They keep using the app; no board shows them until restored (Live → Leaderboards)."
           action="Exclude"
           onConfirm={async (reason) => {
             await api.exclude(action.userId, reason);

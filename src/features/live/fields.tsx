@@ -6,7 +6,7 @@ import { Button } from '../../components/ui';
 
 /**
  * The live forms' fields (D6.2): a label over one control, disabled when the API would refuse a
- * change (locked), and lists of rows (teams, missions, milestones, rewards) that can grow and
+ * change (locked), and lists of rows (a theme's rewards) that can grow and
  * shrink until they lock. Values stay as typed; the API judges them and names every problem.
  */
 

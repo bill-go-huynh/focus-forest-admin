@@ -8,7 +8,6 @@ import { Button, Cell, ErrorMessage, Loading, Table } from '../../components/ui'
 import { instantLabel, liveStatusLabel } from '../../lib/format';
 import type { Theme } from '../../lib/schemas';
 import { useAdminApi } from '../../lib/session';
-import { STATUSES } from './EventEditor';
 import { InstantField, NumberField, Rows, SelectField, TextField } from './fields';
 import { changedFields, themeSchedule } from './live-schedule';
 
@@ -17,6 +16,11 @@ const HEMISPHERES = [
   ['south', 'Southern hemisphere'],
 ] as const;
 const LOCKED = 'Locked: the theme has started.';
+const STATUSES = [
+  ['planned', 'Planned'],
+  ['active', 'Active'],
+  ['retired', 'Retired'],
+] as const;
 
 const window = (theme: { startsAt: string; endsAt: string }) =>
   `${instantLabel(theme.startsAt)} – ${instantLabel(theme.endsAt)}`;

@@ -1,15 +1,14 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 
-import { EventDetail } from '../features/live/EventDetail';
 import { LivePage } from '../features/live/LivePage';
 import { AdminShell } from '../features/shell/AdminShell';
 import { fakeApi, nestError, type Recorded, type Reply } from '../test/fake-api';
 import { navigation, renderAdmin, session } from '../test/render';
 
 /**
- * D6.2 Live operations (docs/09 later admin: events and missions, Community Tree, seasonal
- * themes, leaderboards with exclusions). Content staff and admins run them; what people have
- * taken part in is locked, and the page says why.
+ * D6.2 Live operations (docs/09 later admin: seasonal themes, leaderboards with exclusions).
+ * Content staff and admins run them; a started theme is locked, and the page says why. Events,
+ * missions, teams and the Community Tree were removed from the product (owner, 2026-10-22).
  */
 
 vi.mock('next/navigation', () => ({
@@ -47,76 +46,6 @@ const links = () =>
     .getAllByRole('link')
     .map((link) => link.textContent);
 
-const SUMMARY = {
-  id: 'autumn-focus',
-  name: 'Autumn Focus',
-  status: 'active',
-  startsAt: '2026-10-20T00:00:00.000Z',
-  endsAt: '2026-11-03T00:00:00.000Z',
-  leaderboard: true,
-  participants: 2,
-  locked: true,
-};
-const OPEN_SUMMARY = {
-  ...SUMMARY,
-  id: 'winter-week',
-  name: 'Winter Week',
-  status: 'planned',
-  startsAt: '2026-12-07T00:00:00.000Z',
-  endsAt: '2026-12-14T00:00:00.000Z',
-  leaderboard: false,
-  participants: 0,
-  locked: false,
-};
-const EVENT = {
-  ...SUMMARY,
-  description: 'Focus through autumn.',
-  artworkId: 'autumn-focus',
-  entryMinSessions: 0,
-  teams: [],
-  missions: [
-    {
-      id: 'minutes',
-      measure: 'focus_minutes',
-      target: 300,
-      dailyMinutes: 0,
-      name: '300 minutes',
-      description: 'Focus for 300 minutes.',
-    },
-  ],
-  milestones: [
-    {
-      id: 'done',
-      name: 'Done',
-      requiredMissions: 1,
-      badgeId: 'autumn-badge',
-      cosmeticId: null,
-      traitId: null,
-    },
-  ],
-  communityTree: {
-    name: 'Autumn Grove',
-    artworkId: 'grove',
-    totalMinutes: 1200,
-    contributors: 3,
-    milestones: [
-      {
-        stage: 'seedling',
-        thresholdMinutes: 1000,
-        badgeId: 'grove-seedling',
-        reachedAt: '2026-10-25T10:00:00.000Z',
-      },
-      { stage: 'bloom', thresholdMinutes: 5000, badgeId: 'grove-bloom', reachedAt: null },
-    ],
-  },
-};
-const OPEN_EVENT = {
-  ...EVENT,
-  ...OPEN_SUMMARY,
-  missions: [],
-  milestones: [],
-  communityTree: null,
-};
 const THEMES = [
   {
     id: 'autumn',
@@ -156,7 +85,6 @@ const BOARD = {
     { rank: 1, person: PERSON('u-1', 'Ada'), score: 900 },
     { rank: 2, person: PERSON('u-2', 'Cheat'), score: 880 },
   ],
-  teams: null,
 };
 const EXCLUSION = {
   user: { id: 'u-9', email: 'bot@example.com', username: 'bot', displayName: 'Bot' },
@@ -189,193 +117,9 @@ describe('roles (D6.2)', { timeout: 15_000 }, () => {
   });
 });
 
-describe('events (D6.2)', { timeout: 15_000 }, () => {
-  it('lists events with their window, people, and lock, and a calendar by month', async () => {
-    const { fetch } = api({ 'GET /admin/live/events': ok({ items: [OPEN_SUMMARY, SUMMARY] }) });
-    renderAdmin(<LivePage />, { fetch, signedIn: session('content') });
-
-    const row = (await screen.findByRole('link', { name: 'Autumn Focus' })).closest('tr')!;
-    expect(screen.getByRole('link', { name: 'Autumn Focus' }).getAttribute('href')).toBe(
-      '/live/events/autumn-focus',
-    );
-    expect(within(row).getByText('Active')).toBeDefined();
-    expect(within(row).getByText('2026-10-20 00:00 UTC – 2026-11-03 00:00 UTC')).toBeDefined();
-    expect(within(row).getByText('2')).toBeDefined();
-    expect(within(row).getByText('Locked')).toBeDefined();
-    const open = screen.getByRole('link', { name: 'Winter Week' }).closest('tr')!;
-    expect(within(open).queryByText('Locked')).toBeNull();
-
-    const calendar = screen.getByRole('region', { name: 'Calendar' });
-    expect(
-      within(calendar)
-        .getAllByRole('heading', { level: 3 })
-        .map((h) => h.textContent),
-    ).toEqual(['Oct 2026', 'Nov 2026', 'Dec 2026']);
-    expect(within(calendar).getByText('Autumn Focus · 1–2')).toBeDefined();
-  });
-
-  it('creates an event with missions, showing every problem the API names', async () => {
-    let attempts = 0;
-    const { fetch, requests } = api({
-      'GET /admin/live/events': ok({ items: [] }),
-      'POST /admin/live/events': () => {
-        attempts += 1;
-        return attempts === 1
-          ? ok(
-              {
-                ...nestError(422, 'missions[0].target must be a whole number.', 'invalid_content'),
-                problems: [
-                  'missions[0].target must be a whole number from 1 to 1000000.',
-                  'The event winter-week ends before it starts.',
-                ],
-              },
-              422,
-            )
-          : ok(OPEN_EVENT, 201);
-      },
-    });
-    renderAdmin(<LivePage />, { fetch, signedIn: session('content') });
-    await screen.findByText('No events yet.');
-
-    fireEvent.click(screen.getByRole('button', { name: 'New event' }));
-    const form = screen.getByRole('form', { name: 'New event' });
-    const field = (label: string) => within(form).getByLabelText(label);
-    fireEvent.change(field('Id'), { target: { value: 'winter-week' } });
-    fireEvent.change(field('Event name'), { target: { value: 'Winter Week' } });
-    fireEvent.change(field('Description'), { target: { value: 'A week of winter focus.' } });
-    fireEvent.change(field('Artwork id'), { target: { value: 'winter-week' } });
-    fireEvent.change(field('Starts at'), { target: { value: '2026-12-07T00:00:00.000Z' } });
-    fireEvent.change(field('Ends at'), { target: { value: '2026-12-14T00:00:00.000Z' } });
-    fireEvent.click(within(form).getByRole('button', { name: 'Add mission' }));
-    const mission = within(form).getByRole('group', { name: 'Mission 1' });
-    fireEvent.change(within(mission).getByLabelText('Id'), { target: { value: 'sessions' } });
-    fireEvent.change(within(mission).getByLabelText('Measure'), {
-      target: { value: 'sessions' },
-    });
-    fireEvent.change(within(mission).getByLabelText('Target'), { target: { value: '' } });
-    fireEvent.change(within(mission).getByLabelText('Name'), {
-      target: { value: 'Five sessions' },
-    });
-    fireEvent.change(within(mission).getByLabelText('Description'), {
-      target: { value: 'Five counted sessions.' },
-    });
-    fireEvent.change(field('Reason'), { target: { value: 'December event' } });
-    fireEvent.click(within(form).getByRole('button', { name: 'Create' }));
-
-    const alert = await screen.findByRole('alert');
-    expect(
-      within(alert)
-        .getAllByRole('listitem')
-        .map((item) => item.textContent),
-    ).toEqual([
-      'missions[0].target must be a whole number from 1 to 1000000.',
-      'The event winter-week ends before it starts.',
-    ]);
-
-    fireEvent.change(within(mission).getByLabelText('Target'), { target: { value: '5' } });
-    fireEvent.click(within(form).getByRole('button', { name: 'Create' }));
-    await waitFor(() => expect(navigation.push).toHaveBeenCalledWith('/live/events/winter-week'));
-    expect(requests.filter((r) => r.method === 'POST').at(-1)!.body).toEqual({
-      id: 'winter-week',
-      name: 'Winter Week',
-      description: 'A week of winter focus.',
-      artworkId: 'winter-week',
-      status: 'planned',
-      startsAt: '2026-12-07T00:00:00.000Z',
-      endsAt: '2026-12-14T00:00:00.000Z',
-      entryMinSessions: 0,
-      leaderboard: false,
-      teams: [],
-      missions: [
-        {
-          id: 'sessions',
-          measure: 'sessions',
-          target: 5,
-          dailyMinutes: 0,
-          name: 'Five sessions',
-          description: 'Five counted sessions.',
-        },
-      ],
-      milestones: [],
-      communityTree: null,
-      reason: 'December event',
-    });
-  });
-});
-
-describe('an event (D6.2)', { timeout: 15_000 }, () => {
-  it('monitors the Community Tree', async () => {
-    navigation.params = { id: 'autumn-focus' };
-    const { fetch } = api({ 'GET /admin/live/events/autumn-focus': ok(EVENT) });
-    renderAdmin(<EventDetail />, { fetch, signedIn: session('content') });
-
-    const monitor = await screen.findByRole('region', { name: 'Community Tree' });
-    expect(within(monitor).getByText('Autumn Grove')).toBeDefined();
-    expect(within(monitor).getByText('1,200 minutes from 3 people')).toBeDefined();
-    const rows = within(monitor).getAllByRole('row').slice(1);
-    expect(rows.map((row) => row.textContent)).toEqual([
-      'Seedling1,000grove-seedlingReached 2026-10-25 10:00 UTC',
-      'Bloom5,000grove-bloom3,800 minutes to go',
-    ]);
-  });
-
-  it('locks what people took part in, says why, and saves only what changed', async () => {
-    navigation.params = { id: 'autumn-focus' };
-    const { fetch, requests } = api({
-      'GET /admin/live/events/autumn-focus': ok(EVENT),
-      'PATCH /admin/live/events/autumn-focus': ok({ ...EVENT, name: 'Autumn' }),
-    });
-    renderAdmin(<EventDetail />, { fetch, signedIn: session('content') });
-    const form = await screen.findByRole('form', { name: 'Edit Autumn Focus' });
-
-    expect(within(form).getAllByText('Locked: people have taken part.').length).toBeGreaterThan(0);
-    expect((within(form).getByLabelText('Starts at') as HTMLInputElement).disabled).toBe(true);
-    expect(
-      (within(form).getByLabelText('Entry: counted sessions') as HTMLInputElement).disabled,
-    ).toBe(true);
-    expect(within(form).queryByRole('button', { name: 'Add mission' })).toBeNull();
-    expect((within(form).getByLabelText('Event name') as HTMLInputElement).disabled).toBe(false);
-    expect(within(form).getByText('The end can only move later.')).toBeDefined();
-    // Nobody can delete what people have joined.
-    expect(screen.queryByRole('button', { name: 'Delete event' })).toBeNull();
-
-    fireEvent.change(within(form).getByLabelText('Event name'), { target: { value: 'Autumn' } });
-    fireEvent.change(within(form).getByLabelText('Reason'), { target: { value: 'Shorter name' } });
-    fireEvent.click(within(form).getByRole('button', { name: 'Save' }));
-    await screen.findByText('Saved.');
-    expect(requests.find((r) => r.method === 'PATCH')!.body).toEqual({
-      name: 'Autumn',
-      reason: 'Shorter name',
-    });
-  });
-
-  it('deletes an event nobody joined, after a confirmed reason', async () => {
-    navigation.params = { id: 'winter-week' };
-    const { fetch, requests } = api({
-      'GET /admin/live/events/winter-week': ok(OPEN_EVENT),
-      'DELETE /admin/live/events/winter-week': { status: 204 },
-    });
-    renderAdmin(<EventDetail />, { fetch, signedIn: session('content') });
-    const form = await screen.findByRole('form', { name: 'Edit Winter Week' });
-    expect(within(form).queryByText('Locked: people have taken part.')).toBeNull();
-    expect(within(form).getByRole('button', { name: 'Add mission' })).toBeDefined();
-    expect(screen.queryByRole('region', { name: 'Community Tree' })).toBeNull();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Delete event' }));
-    const dialog = screen.getByRole('dialog');
-    fireEvent.change(within(dialog).getByLabelText('Reason (logged)'), {
-      target: { value: 'Planned twice' },
-    });
-    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
-    await waitFor(() => expect(navigation.push).toHaveBeenCalledWith('/live'));
-    expect(requests.find((r) => r.method === 'DELETE')!.body).toEqual({ reason: 'Planned twice' });
-  });
-});
-
 describe('seasonal themes (D6.2)', { timeout: 15_000 }, () => {
   it('shows each hemisphere’s schedule with its gaps', async () => {
     const { fetch } = api({
-      'GET /admin/live/events': ok({ items: [] }),
       'GET /admin/live/themes': ok({ items: THEMES }),
     });
     renderAdmin(<LivePage />, { fetch, signedIn: session('content') });
@@ -397,7 +141,6 @@ describe('seasonal themes (D6.2)', { timeout: 15_000 }, () => {
 
   it('creates a theme with a reward, and locks a started theme', async () => {
     const { fetch, requests } = api({
-      'GET /admin/live/events': ok({ items: [] }),
       'GET /admin/live/themes': ok({ items: THEMES }),
       'POST /admin/live/themes': ok({ ...THEMES[1], id: 'spring' }, 201),
     });
@@ -455,7 +198,6 @@ describe('leaderboards (D6.2)', { timeout: 15_000 }, () => {
   it('excludes an abusive account with a reason, and restores one', async () => {
     let excluded = false;
     const { fetch, requests } = api({
-      'GET /admin/live/events': ok({ items: [SUMMARY, OPEN_SUMMARY] }),
       'GET /admin/live/leaderboards?scope=global&period=weekly': () =>
         ok(excluded ? { ...BOARD, rows: BOARD.rows.slice(0, 1) } : BOARD),
       'GET /admin/live/leaderboard-exclusions': () =>
@@ -506,17 +248,14 @@ describe('leaderboards (D6.2)', { timeout: 15_000 }, () => {
     );
   });
 
-  it('shows an event board with its teams, for events with a board only', async () => {
+  it('offers global boards only, by week or month (no event boards, owner 2026-10-22)', async () => {
     const { fetch, requests } = api({
-      'GET /admin/live/events': ok({ items: [SUMMARY, OPEN_SUMMARY] }),
       'GET /admin/live/leaderboards?scope=global&period=weekly': ok(BOARD),
-      'GET /admin/live/leaderboard-exclusions': ok({ items: [] }),
-      'GET /admin/live/leaderboards?scope=event&eventId=autumn-focus': ok({
+      'GET /admin/live/leaderboards?scope=global&period=monthly': ok({
         ...BOARD,
-        scope: 'event',
-        period: { kind: 'event', startDate: '2026-10-20', endDate: '2026-11-02' },
-        teams: [{ id: 'owls', name: 'Owls', rank: 1, score: 870, members: 4 }],
+        period: { kind: 'monthly', startDate: '2026-10-01', endDate: '2026-10-31' },
       }),
+      'GET /admin/live/leaderboard-exclusions': ok({ items: [] }),
     });
     renderAdmin(<LivePage />, { fetch, signedIn: session('admin') });
     fireEvent.click(screen.getByRole('tab', { name: 'Leaderboards' }));
@@ -527,13 +266,27 @@ describe('leaderboards (D6.2)', { timeout: 15_000 }, () => {
       within(board)
         .getAllByRole('option')
         .map((o) => o.textContent),
-    ).toEqual(['Global, weekly', 'Global, monthly', 'Event: Autumn Focus']);
-    fireEvent.change(board, { target: { value: 'event:autumn-focus' } });
-    const teams = await screen.findByRole('table', { name: 'Teams' });
-    expect(within(teams).getByText('Owls')).toBeDefined();
+    ).toEqual(['Global, weekly', 'Global, monthly']);
+    fireEvent.change(board, { target: { value: 'global:monthly' } });
+    await screen.findByRole('table', { name: 'Global monthly board' });
+    expect(screen.queryByRole('table', { name: 'Teams' })).toBeNull();
     expect(requests.map((r) => r.path)).toContain(
-      '/admin/live/leaderboards?scope=event&eventId=autumn-focus',
+      '/admin/live/leaderboards?scope=global&period=monthly',
     );
-    expect(screen.getByRole('table', { name: 'Autumn Focus board' })).toBeDefined();
+    expect(requests.some((r) => r.path.includes('/admin/live/events'))).toBe(false);
+  });
+});
+
+describe('no events (owner, 2026-10-22)', { timeout: 15_000 }, () => {
+  it('opens on seasonal themes, with no Events tab', async () => {
+    const { fetch, requests } = api({ 'GET /admin/live/themes': ok({ items: THEMES }) });
+    renderAdmin(<LivePage />, { fetch, signedIn: session('admin') });
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Seasonal themes',
+      'Leaderboards',
+    ]);
+    await screen.findByRole('region', { name: 'Northern hemisphere' });
+    expect(screen.queryByRole('button', { name: 'New event' })).toBeNull();
+    expect(requests.some((r) => r.path.includes('/admin/live/events'))).toBe(false);
   });
 });

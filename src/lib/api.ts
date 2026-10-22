@@ -24,8 +24,6 @@ import {
   exclusionSchema,
   grantSchema,
   integrityListSchema,
-  liveEventListSchema,
-  liveEventSchema,
   rateLimitRefusalsSchema,
   notificationDiagnosticsSchema,
   reportDetailSchema,
@@ -56,9 +54,11 @@ export interface AuditFilters {
   to?: string;
 }
 
-/** A board staff can view: global by period, or one event's. */
-export type StaffBoardQuery =
-  { scope: 'global'; period: 'weekly' | 'monthly' } | { scope: 'event'; eventId: string };
+/** A board staff can view: global, by period. */
+export interface StaffBoardQuery {
+  scope: 'global';
+  period: 'weekly' | 'monthly';
+}
 
 export type AdminApiErrorKind = 'http' | 'network' | 'invalid_response';
 
@@ -235,21 +235,6 @@ export function createAdminApi(options: AdminApiOptions) {
         body: { reason },
       }),
     // D6.2: live operations (admins and content staff).
-    liveEvents: () => request('/admin/live/events', liveEventListSchema),
-    liveEvent: (id: string) =>
-      request(`/admin/live/events/${encodeURIComponent(id)}`, liveEventSchema),
-    createLiveEvent: (body: Record<string, unknown>) =>
-      request('/admin/live/events', liveEventSchema, { method: 'POST', body }),
-    updateLiveEvent: (id: string, body: Record<string, unknown>) =>
-      request(`/admin/live/events/${encodeURIComponent(id)}`, liveEventSchema, {
-        method: 'PATCH',
-        body,
-      }),
-    deleteLiveEvent: (id: string, reason: string) =>
-      request(`/admin/live/events/${encodeURIComponent(id)}`, null, {
-        method: 'DELETE',
-        body: { reason },
-      }),
     themes: () => request('/admin/live/themes', themeListSchema),
     createTheme: (body: Record<string, unknown>) =>
       request('/admin/live/themes', themeSchema, { method: 'POST', body }),
@@ -265,11 +250,7 @@ export function createAdminApi(options: AdminApiOptions) {
       }),
     staffBoard: (board: StaffBoardQuery) =>
       request(
-        `/admin/live/leaderboards${query(
-          board.scope === 'event'
-            ? { scope: 'event', eventId: board.eventId }
-            : { scope: 'global', period: board.period },
-        )}`,
+        `/admin/live/leaderboards${query({ scope: board.scope, period: board.period })}`,
         staffBoardSchema,
       ),
     exclusions: () => request('/admin/live/leaderboard-exclusions', exclusionListSchema),

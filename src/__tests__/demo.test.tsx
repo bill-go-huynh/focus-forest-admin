@@ -35,7 +35,6 @@ const api = (routes: Record<string, Reply | ((r: Recorded) => Reply)>) =>
 
 const WORLD = {
   id: 3,
-  eventId: 'demo-world-3',
   accounts: [
     {
       persona: 'main',
@@ -262,7 +261,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     renderAdmin(<DemoPage />, { fetch });
     await screen.findByRole('region', { name: 'Demo account' });
     // One button per notification, no picker.
-    expect(screen.getAllByRole('button', { name: /^Send:/ }).length).toBe(10);
+    expect(screen.getAllByRole('button', { name: /^Send:/ }).length).toBe(8);
     fireEvent.click(screen.getByRole('button', { name: 'Send: Monthly recap ready' }));
     expect(await screen.findByText('Sent: “Your September recap is ready”')).toBeTruthy();
     expect(requests.at(-1)?.body).toEqual({ persona: 'main', category: 'monthlyRecapReady' });
