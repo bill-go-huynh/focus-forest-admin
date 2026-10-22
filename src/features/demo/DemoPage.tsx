@@ -157,6 +157,7 @@ function World({ worlds }: { worlds: DemoWorld[] }) {
   const [chosen, setChosen] = useState<number | null>(null);
   const world = worlds.find((w) => w.id === chosen) ?? worlds[0]!;
   const main = world.accounts.find((a) => a.persona === 'main');
+  const linh = world.accounts.find((a) => a.persona === 'friend-linh');
   return (
     <div className="space-y-4">
       <section aria-label="Demo account">
@@ -191,6 +192,17 @@ function World({ worlds }: { worlds: DemoWorld[] }) {
               </div>
             ) : null}
           </div>
+          {linh ? (
+            <div
+              role="group"
+              aria-label="Second phone"
+              className="mt-3 rounded-xl bg-paper-2 px-3 py-2 text-sm"
+            >
+              <p className="font-medium">{`Second phone (emulator): ${linh.name}, a friend`}</p>
+              <p className="font-mono text-xs">{linh.email}</p>
+              <p className="text-xs text-ink-2">{`Password ${linh.password ?? ''}`}</p>
+            </div>
+          ) : null}
           <ul className="mt-3 list-disc space-y-0.5 pl-5 text-sm text-ink-2">
             {SEEDED.map((line) => (
               <li key={line}>{line}</li>

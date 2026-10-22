@@ -120,7 +120,10 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     expect(within(account).getByText(/Continue with Google/)).toBeTruthy();
     // Only the presenter: the people around it are driven from here, never signed in to
     // (owner, 2026-10-22).
-    expect(screen.queryByText(/demo3-friend-linh/)).toBeNull();
+    // Linh is the one friend shown: the second phone (emulator) signs in to her.
+    const second = within(account).getByRole('group', { name: 'Second phone' });
+    expect(within(second).getByText('demo3-friend-linh@focusforest.test')).toBeTruthy();
+    expect(within(second).getByText(/focus-forest-demo/)).toBeTruthy();
     expect(screen.queryByText(/demo3-comeback/)).toBeNull();
     expect(screen.queryByLabelText('Account')).toBeNull();
     expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
@@ -150,7 +153,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     renderAdmin(<DemoPage />, { fetch });
     const account = await screen.findByRole('region', { name: 'Demo account' });
     expect(within(account).getByText('demo3@focusforest.test')).toBeTruthy();
-    expect(within(account).getByText(/focus-forest-demo/)).toBeTruthy();
+    expect(within(account).getByText(/the password focus-forest-demo/)).toBeTruthy();
   });
 
   it('acts on the newest world, and can switch to an older one', async () => {
