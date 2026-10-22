@@ -296,14 +296,11 @@ export function createAdminApi(options: AdminApiOptions) {
     // DM.2: demo tools (spec/demo/PLAN.md).
     demoStatus: () => request('/admin/demo/status', demoStatusSchema),
     demoWorlds: () => request('/admin/demo/worlds', demoWorldListSchema),
-    makeDemoWorld: (
-      password: string,
-      reason: string,
-      emails?: Partial<Record<DemoPersona, string>>,
-    ) =>
+    /** One world seeded on `email` (blank: a demo address); no password (owner, 2026-10-22). */
+    makeDemoWorld: (reason: string, email?: string) =>
       request('/admin/demo/worlds', demoWorldSchema, {
         method: 'POST',
-        body: emails ? { password, reason, emails } : { password, reason },
+        body: email ? { reason, emails: { main: email } } : { reason },
       }),
     demoNotify: (world: number, persona: DemoPersona, category: DemoCategory) =>
       request(`/admin/demo/worlds/${world}/notify`, demoNotifyResultSchema, {
@@ -324,6 +321,8 @@ export function createAdminApi(options: AdminApiOptions) {
       request(`/admin/demo/worlds/${world}/react`, null, { method: 'POST', body: { persona } }),
     demoFriendReady: (world: number) =>
       request(`/admin/demo/worlds/${world}/friend-ready`, null, { method: 'POST', body: {} }),
+    demoRoom: (world: number) =>
+      request(`/admin/demo/worlds/${world}/room`, null, { method: 'POST', body: {} }),
     // D5.1: focus rooms.
     rooms: () => request('/admin/rooms', roomListSchema),
     closeRoom: (id: string, reason: string) =>

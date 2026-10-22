@@ -28,8 +28,8 @@ export function Dashboard() {
       ) : (
         <dl className="grid max-w-2xl grid-cols-2 gap-4">
           {STATS.map(({ key, label }) => (
-            <div key={key} className="rounded border p-3">
-              <dt className="text-sm text-neutral-600">{label}</dt>
+            <div key={key} className="rounded-lg border border-line p-3">
+              <dt className="text-sm text-muted">{label}</dt>
               <dd data-testid={`stat-${key}`} className="text-2xl font-semibold">
                 {query.data[key]}
               </dd>

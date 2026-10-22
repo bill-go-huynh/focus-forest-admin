@@ -61,7 +61,7 @@ export function LeaderboardsPanel({ events }: { events: LiveEventSummary[] }) {
         </label>
         <select
           id={selectId}
-          className="w-full rounded border px-2 py-1 text-sm"
+          className="w-full rounded-lg border border-line px-2 py-1 text-sm"
           value={choice}
           onChange={(e) => setChoice(e.target.value)}
         >

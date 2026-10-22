@@ -1,9 +1,62 @@
 @import 'tailwindcss';
 
+/*
+ * The Focus Forest look (design system "Focus Forest", day garden): warm paper, forest green for
+ * the one primary action and the sidebar, ink text. Owner, 2026-10-22: a green theme.
+ */
+@theme {
+  --color-paper: #f7f3ea;
+  --color-paper-2: #efe8da;
+  --color-surface: #fffcf6;
+  --color-sunken: #ebe4d6;
+  --color-line: #e2d9c8;
+  --color-line-strong: #8a7f70;
+  --color-ink: #2b2620;
+  --color-ink-2: #4d453b;
+  --color-muted: #665d51;
+  --color-forest: #428552;
+  --color-forest-strong: #2f6b3e;
+  --color-forest-deep: #1f3d2b;
+  --color-forest-soft: #ddead8;
+  --color-amber: #9c5b0c;
+  --color-amber-soft: #f6e7cb;
+  --color-danger: #9e3b31;
+  --color-danger-soft: #f6e1dd;
+  --color-focus: #1f5c99;
+
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+  --font-display: var(--font-fraunces), Georgia, serif;
+}
+
 :root {
-  color-scheme: light dark;
+  /* One light look: the admin is a work tool, and the browser must not paint it dark. */
+  color-scheme: light;
 }
 
 body {
-  font-family: system-ui, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+@layer base {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    border: 1px solid var(--color-line-strong);
+    border-radius: 0.5rem;
+    background: var(--color-surface);
+    color: var(--color-ink);
+  }
+  input[type='checkbox'],
+  input[type='radio'] {
+    accent-color: var(--color-forest);
+  }
+  :focus-visible {
+    outline: 2px solid var(--color-focus);
+    outline-offset: 2px;
+  }
+  a {
+    color: var(--color-forest-strong);
+  }
 }

@@ -102,7 +102,8 @@ describe('the shell (CR.5)', () => {
         .getAllByRole('link')
         .map((link) => link.textContent),
     ).toEqual(['Dashboard', 'Users', 'App errors', 'Checkpoint', 'Configuration']);
-    expect(screen.getByText('support@example.com (support)')).toBeDefined();
+    expect(screen.getByText('support@example.com')).toBeDefined();
+    expect(screen.getByText('support')).toBeDefined();
     unmount();
     renderAdmin(<AdminShell>content</AdminShell>, {
       fetch: api({}).fetch,

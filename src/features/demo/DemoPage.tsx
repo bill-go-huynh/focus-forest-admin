@@ -3,11 +3,10 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 
-import { Button, ErrorMessage, Loading, PageTitle, SectionTitle } from '../../components/ui';
+import { Button, ErrorMessage, Loading, PageTitle, Panel, SectionTitle } from '../../components/ui';
 import { AdminApiError } from '../../lib/api';
 import {
   DEMO_CATEGORIES,
-  DEMO_PERSONAS,
   type DemoCategory,
   type DemoNotifyResult,
   type DemoPersona,
@@ -73,7 +72,7 @@ const REASONS: Record<string, string> = {
   PushDisabled: 'The API sends no push: set PUSH_PROVIDER=expo.',
 };
 
-const input = 'rounded border px-2 py-1 text-sm';
+const input = 'px-3 py-1.5 text-sm';
 const messageOf = (error: unknown) =>
   error instanceof AdminApiError ? error.message : 'Something went wrong. Try again.';
 
@@ -103,28 +102,18 @@ function DemoWorlds() {
   const api = useAdminApi();
   const queryClient = useQueryClient();
   const worlds = useQuery({ queryKey: ['demo', 'worlds'], queryFn: () => api.demoWorlds() });
-  const passwordId = useId();
-  const [password, setPassword] = useState('');
-  const [emails, setEmails] = useState<Partial<Record<DemoPersona, string>>>({});
+  const emailId = useId();
+  const [email, setEmail] = useState('');
   const [problem, setProblem] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
   const make = async (event?: FormEvent) => {
     event?.preventDefault();
-    if (password.length < 8) return setProblem('Use at least 8 characters.');
     setProblem(null);
     setBusy(true);
     try {
-      // Blank ones are left out: the API gives those accounts demoN…@focusforest.test.
-      const entered = Object.fromEntries(
-        DEMO_PERSONAS.flatMap((p) => (emails[p]?.trim() ? [[p, emails[p].trim()]] : [])),
-      );
-      await api.makeDemoWorld(
-        password,
-        'Demo',
-        Object.keys(entered).length > 0 ? entered : undefined,
-      );
-      setEmails({});
+      await api.makeDemoWorld('Demo', email.trim() || undefined);
+      setEmail('');
       await queryClient.invalidateQueries({ queryKey: ['demo', 'worlds'] });
     } catch (error) {
       setProblem(messageOf(error));
@@ -135,57 +124,46 @@ function DemoWorlds() {
 
   return (
     <div className="space-y-8">
-      <form onSubmit={(e) => void make(e)} className="max-w-xl space-y-2">
-        <SectionTitle>New demo world</SectionTitle>
-        <p className="text-sm text-neutral-700">
-          Six accounts with history, and a demo event. Each demo uses a fresh world: what it shows
-          happens once, as in the app. Enter the emails you want to sign in with, or leave them
-          blank; an email that already has an account is refused.
-        </p>
-        <label htmlFor={passwordId} className="block text-sm">
-          Password for the demo accounts
-        </label>
-        <input
-          id={passwordId}
-          type="text"
-          className={input}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-        <EmailField
-          persona="main"
-          value={emails.main ?? ''}
-          onChange={(main) => setEmails((all) => ({ ...all, main }))}
-        />
-        <details className="text-sm">
-          <summary className="cursor-pointer">Emails for the other accounts</summary>
-          <div className="mt-2 space-y-2">
-            {DEMO_PERSONAS.filter((p) => p !== 'main').map((p) => (
-              <EmailField
-                key={p}
-                persona={p}
-                value={emails[p] ?? ''}
-                onChange={(email) => setEmails((all) => ({ ...all, [p]: email }))}
-              />
-            ))}
-          </div>
-        </details>
-        {problem ? (
-          <p role="alert" className="text-sm text-red-800">
-            {problem}
+      <Panel>
+        <form onSubmit={(e) => void make(e)} className="max-w-2xl space-y-3">
+          <h2 className="text-lg font-semibold">New demo world</h2>
+          <p className="text-sm text-ink-2">
+            One account with months of history, friends, followers, a waiting room and a demo event,
+            ready to show every step. Each demo uses a fresh world: what it shows happens once, as
+            in the app.
           </p>
-        ) : null}
-        <Button tone="primary" type="submit" disabled={busy}>
-          Make a demo world
-        </Button>
-      </form>
+          <label htmlFor={emailId} className="block text-sm font-medium">
+            Email to seed
+          </label>
+          <input
+            id={emailId}
+            type="email"
+            className={`${input} w-full`}
+            placeholder="you@gmail.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
+          <p className="text-xs text-muted">
+            Sign in on the phone with Google using this email. Leave it blank for a demo address
+            (password focus-forest-demo). An email that already has an account is refused.
+          </p>
+          {problem ? (
+            <p role="alert" className="text-sm text-danger">
+              {problem}
+            </p>
+          ) : null}
+          <Button tone="primary" type="submit" disabled={busy}>
+            Make a demo world
+          </Button>
+        </form>
+      </Panel>
 
       {worlds.isError ? (
         <ErrorMessage error={worlds.error} onRetry={() => void worlds.refetch()} />
       ) : !worlds.data ? (
         <Loading label="Loading demo worlds" />
       ) : worlds.data.items.length === 0 ? (
-        <p className="text-sm">No demo world yet.</p>
+        <p className="text-sm text-muted">No demo world yet.</p>
       ) : (
         worlds.data.items.map((world) => <World key={world.id} world={world} />)
       )}
@@ -193,71 +171,58 @@ function DemoWorlds() {
   );
 }
 
-/**
- * The address to sign in with on the phone. Optional: left blank, the account gets
- * demoN…@focusforest.test. An address that already has an account is refused, so a real
- * account is never changed.
- */
-function EmailField({
-  persona,
-  value,
-  onChange,
-}: {
-  persona: DemoPersona;
-  value: string;
-  onChange: (email: string) => void;
-}) {
-  const id = useId();
-  const { label, name } = PERSONA[persona];
-  return (
-    <div className="space-y-1">
-      <label htmlFor={id} className="block text-sm">
-        Email for {label} ({name})
-      </label>
-      <input
-        id={id}
-        type="email"
-        className={`${input} w-full`}
-        placeholder="Leave blank for a demo…@focusforest.test address"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-      />
-    </div>
-  );
-}
-
 function World({ world }: { world: DemoWorld }) {
   const title = `Demo world ${world.id}`;
   return (
-    <section className="space-y-4 border-t pt-4">
+    <section className="space-y-4">
       <SectionTitle>{title}</SectionTitle>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto rounded-2xl border border-line bg-surface">
         <table aria-label={title} className="w-full text-left text-sm">
-          <thead>
+          <thead className="bg-paper-2 text-xs uppercase tracking-wide text-muted">
             <tr>
-              <th className="py-1 pr-4">Account</th>
-              <th className="py-1 pr-4">Sign in with</th>
-              <th className="py-1">What it shows</th>
+              <th className="px-3 py-2.5">Account</th>
+              <th className="px-3 py-2.5">Email</th>
+              <th className="px-3 py-2.5">Sign in</th>
+              <th className="px-3 py-2.5">What it shows</th>
             </tr>
           </thead>
           <tbody>
             {world.accounts.map((a) => (
-              <tr key={a.userId} className="border-t align-top">
-                <td className="py-1 pr-4">{`${PERSONA[a.persona].label}: ${a.name}`}</td>
-                <td className="py-1 pr-4 font-mono">{a.email}</td>
-                <td className="py-1">{PERSONA[a.persona].shows}</td>
+              <tr key={a.userId} className="border-t border-line align-top">
+                <td className="px-3 py-2.5 font-medium">{`${PERSONA[a.persona].label}: ${a.name}`}</td>
+                <td className="px-3 py-2.5 font-mono text-xs">{a.email}</td>
+                <td className="px-3 py-2.5">
+                  <span
+                    className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${
+                      a.signIn === 'google'
+                        ? 'bg-forest-soft text-forest-deep'
+                        : 'bg-amber-soft text-amber'
+                    }`}
+                  >
+                    {a.signIn === 'google' ? 'Google' : `Password: ${a.password ?? ''}`}
+                  </span>
+                </td>
+                <td className="px-3 py-2.5 text-ink-2">{PERSONA[a.persona].shows}</td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      <p className="text-xs text-neutral-600">
+      <p className="text-xs text-muted">
         Keep the app open on the phone, signed in to the account: what you do below shows there at
         once.
       </p>
-      <AccountActions world={world} />
-      <NotifyActions world={world} />
-      <TogetherActions world={world} />
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Panel>
+          <AccountActions world={world} />
+        </Panel>
+        <Panel>
+          <NotifyActions world={world} />
+        </Panel>
+        <Panel>
+          <TogetherActions world={world} />
+        </Panel>
+      </div>
     </section>
   );
 }
@@ -277,7 +242,7 @@ function useOutcome() {
     }
   };
   const line: ReactNode = outcome ? (
-    <p role="status" className={`text-sm ${outcome.ok ? 'text-green-800' : 'text-red-800'}`}>
+    <p role="status" className={`text-sm ${outcome.ok ? 'text-forest-strong' : 'text-danger'}`}>
       {outcome.text}
     </p>
   ) : null;
@@ -325,7 +290,7 @@ function AccountActions({ world }: { world: DemoWorld }) {
   const name = (p: DemoPersona) => world.accounts.find((a) => a.persona === p)?.name ?? p;
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold">Change an account</h3>
+      <h3 className="text-base font-semibold">Change an account</h3>
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor={`${id}-who`} className="block text-xs">
@@ -417,7 +382,7 @@ function NotifyActions({ world }: { world: DemoWorld }) {
       : `Not sent: ${REASONS[r.reason ?? ''] ?? r.reason ?? r.status}`;
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold">Send a notification now</h3>
+      <h3 className="text-base font-semibold">Send a notification now</h3>
       <div className="flex flex-wrap items-end gap-3">
         <div>
           <label htmlFor={`${id}-cat`} className="block text-xs">
@@ -467,9 +432,24 @@ function TogetherActions({ world }: { world: DemoWorld }) {
   const { run, busy, line } = useOutcome();
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-semibold">Focus Together</h3>
-      <p className="text-xs text-neutral-600">
-        Open a room on the phone first (Together, Create a room).
+      <h3 className="text-base font-semibold">Focus Together</h3>
+      <p className="text-xs text-muted">
+        The world starts with a waiting room Mai opened, the presenter invited and Khoa ready. A
+        waiting room lasts 2 hours: open a fresh one before the demo.
+      </p>
+      <Button
+        disabled={busy}
+        onClick={() =>
+          void run(async () => {
+            await api.demoRoom(world.id);
+            return 'Mai opened a new waiting room and invited you; Khoa is ready in it.';
+          })
+        }
+      >
+        Open a fresh waiting room
+      </Button>
+      <p className="text-xs text-muted">
+        Or open a room on the phone (Together, Create a room), then:
       </p>
       <Button
         disabled={busy}

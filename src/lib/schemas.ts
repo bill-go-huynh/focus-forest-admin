@@ -510,6 +510,9 @@ export const demoWorldSchema = z.object({
       email: z.string(),
       userId: z.string(),
       name: z.string(),
+      /** An entered email signs in with Google; a demo address with the shared password. */
+      signIn: z.enum(['google', 'password']),
+      password: z.string().nullable(),
     }),
   ),
 });

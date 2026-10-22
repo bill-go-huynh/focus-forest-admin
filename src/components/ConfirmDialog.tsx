@@ -49,12 +49,12 @@ export function ConfirmDialog({
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30">
+    <div className="fixed inset-0 flex items-center justify-center bg-[#1c181266]">
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${id}-title`}
-        className="w-full max-w-md rounded bg-white p-4 text-neutral-900 shadow"
+        className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 text-ink shadow-[0_6px_16px_#2b262024]"
       >
         <h2 id={`${id}-title`} className="text-base font-semibold">
           {title}
@@ -67,7 +67,7 @@ export function ConfirmDialog({
           id={`${id}-reason`}
           value={reason}
           onChange={(event) => setReason(event.target.value)}
-          className="mt-1 w-full rounded border p-2 text-sm"
+          className="mt-1 w-full px-3 py-2 text-sm"
           rows={2}
         />
         {confirmText !== undefined ? (
@@ -79,7 +79,7 @@ export function ConfirmDialog({
               id={`${id}-typed`}
               value={typed}
               onChange={(event) => setTyped(event.target.value)}
-              className="mt-1 w-full rounded border p-2 text-sm"
+              className="mt-1 w-full px-3 py-2 text-sm"
               autoComplete="off"
             />
           </>

@@ -36,7 +36,7 @@ export function ReportsQueue() {
           id={`${id}-status`}
           value={status}
           onChange={(event) => setStatus(event.target.value as ReportStatus | '')}
-          className="rounded border p-1.5"
+          className="rounded-lg border border-line p-1.5"
         >
           <option value="">Waiting (open and in review)</option>
           {STATUSES.map((value) => (

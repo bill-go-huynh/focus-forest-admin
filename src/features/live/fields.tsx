@@ -10,7 +10,7 @@ import { Button } from '../../components/ui';
  * shrink until they lock. Values stay as typed; the API judges them and names every problem.
  */
 
-const INPUT = 'w-full rounded border px-2 py-1 text-sm disabled:bg-neutral-100';
+const INPUT = 'w-full rounded-lg border border-line px-2 py-1 text-sm disabled:bg-paper-2';
 
 function Labelled({
   label,
@@ -28,7 +28,7 @@ function Labelled({
         {label}
       </label>
       {children(id)}
-      {hint ? <p className="text-xs text-neutral-600">{hint}</p> : null}
+      {hint ? <p className="text-xs text-muted">{hint}</p> : null}
     </div>
   );
 }
@@ -205,15 +205,15 @@ export function Rows<T>({
   return (
     <section className="space-y-2">
       <h3 className="text-sm font-semibold">{title}</h3>
-      {locked ? <p className="text-xs text-neutral-600">{lockedNote}</p> : null}
+      {locked ? <p className="text-xs text-muted">{lockedNote}</p> : null}
       {rows.length === 0 ? (
-        <p className="text-xs text-neutral-600">{`No ${title.toLowerCase()}.`}</p>
+        <p className="text-xs text-muted">{`No ${title.toLowerCase()}.`}</p>
       ) : null}
       {rows.map((row, i) => (
         <fieldset
           key={i}
           aria-label={`${noun} ${i + 1}`}
-          className="grid grid-cols-3 gap-2 rounded border p-2"
+          className="grid grid-cols-3 gap-2 rounded-lg border border-line p-2"
         >
           {render(row, (next) => onChange(rows.map((r, j) => (j === i ? next : r))), locked)}
           {locked ? null : (

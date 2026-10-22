@@ -51,7 +51,11 @@ export function ThemesPanel() {
           const schedule = themeSchedule(items, hemisphere);
           const headingId = `schedule-${hemisphere}`;
           return (
-            <section key={hemisphere} aria-labelledby={headingId} className="rounded border p-3">
+            <section
+              key={hemisphere}
+              aria-labelledby={headingId}
+              className="rounded-lg border border-line p-3"
+            >
               <h3 id={headingId} className="mb-2 text-sm font-semibold">
                 {label}
               </h3>
@@ -61,7 +65,7 @@ export function ThemesPanel() {
                 <ul className="space-y-1 text-sm">
                   {schedule.entries.map((entry) =>
                     entry.kind === 'gap' ? (
-                      <li key={`gap-${entry.from}`} className="text-neutral-500">
+                      <li key={`gap-${entry.from}`} className="text-muted">
                         {`No theme · ${window({ startsAt: entry.from, endsAt: entry.to })}`}
                       </li>
                     ) : (
@@ -79,7 +83,7 @@ export function ThemesPanel() {
                 </ul>
               )}
               {schedule.overlaps.map(([a, b]) => (
-                <p key={`${a}-${b}`} className="mt-2 text-sm text-red-800">
+                <p key={`${a}-${b}`} className="mt-2 text-sm text-danger">
                   {`${a} and ${b} overlap: only the first shows.`}
                 </p>
               ))}
@@ -230,10 +234,10 @@ function ThemeForm({
       <form
         aria-label={title}
         onSubmit={(e) => void submit(e)}
-        className="mx-auto max-w-2xl space-y-4 rounded bg-white p-4 text-neutral-900 shadow"
+        className="mx-auto max-w-2xl space-y-4 rounded bg-surface p-4 text-ink shadow"
       >
         <h2 className="text-base font-semibold">{title}</h2>
-        {locked ? <p className="text-xs text-neutral-600">{LOCKED}</p> : null}
+        {locked ? <p className="text-xs text-muted">{LOCKED}</p> : null}
         <div className="grid grid-cols-2 gap-3">
           {theme ? null : <TextField label="Id" value={values.id} onChange={(v) => set('id', v)} />}
           <TextField label="Name" value={values.name} onChange={(v) => set('name', v)} />
@@ -315,7 +319,7 @@ function ThemeForm({
           </label>
           <input
             id={`${id}-reason`}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className="w-full rounded-lg border border-line px-2 py-1 text-sm"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />

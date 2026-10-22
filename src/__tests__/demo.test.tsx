@@ -37,26 +37,53 @@ const WORLD = {
   id: 3,
   eventId: 'demo-world-3',
   accounts: [
-    { persona: 'main', email: 'demo3@focusforest.test', userId: 'u1', name: 'Bill' },
-    { persona: 'comeback', email: 'demo3-comeback@focusforest.test', userId: 'u2', name: 'An' },
-    { persona: 'recovery', email: 'demo3-recovery@focusforest.test', userId: 'u3', name: 'Vy' },
+    {
+      persona: 'main',
+      email: 'bill.huynh@gmail.com',
+      userId: 'u1',
+      name: 'Bill',
+      signIn: 'google',
+      password: null,
+    },
+    {
+      persona: 'comeback',
+      email: 'demo3-comeback@focusforest.test',
+      userId: 'u2',
+      name: 'An',
+      signIn: 'password',
+      password: 'focus-forest-demo',
+    },
+    {
+      persona: 'recovery',
+      email: 'demo3-recovery@focusforest.test',
+      userId: 'u3',
+      name: 'Vy',
+      signIn: 'password',
+      password: 'focus-forest-demo',
+    },
     {
       persona: 'friend-mai',
       email: 'demo3-friend-mai@focusforest.test',
       userId: 'u4',
       name: 'Mai',
+      signIn: 'password',
+      password: 'focus-forest-demo',
     },
     {
       persona: 'friend-khoa',
       email: 'demo3-friend-khoa@focusforest.test',
       userId: 'u5',
       name: 'Khoa',
+      signIn: 'password',
+      password: 'focus-forest-demo',
     },
     {
       persona: 'friend-linh',
       email: 'demo3-friend-linh@focusforest.test',
       userId: 'u6',
       name: 'Linh',
+      signIn: 'password',
+      password: 'focus-forest-demo',
     },
   ],
 };
@@ -69,7 +96,7 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     expect(screen.queryByRole('button', { name: 'Make a demo world' })).toBeNull();
   });
 
-  it('makes a world with a password, then lists its accounts and what each shows', async () => {
+  it('makes a world from one email, then lists its accounts, how each signs in, and what it shows', async () => {
     let worlds: unknown[] = [];
     const { fetch, requests } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
@@ -81,23 +108,25 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     });
     renderAdmin(<DemoPage />, { fetch });
     expect(await screen.findByText('No demo world yet.')).toBeTruthy();
-    fireEvent.change(screen.getByLabelText('Password for the demo accounts'), {
-      target: { value: 'demo-password-1' },
+    // One field, no password (owner, 2026-10-22).
+    expect(screen.queryByLabelText(/Password/)).toBeNull();
+    fireEvent.change(screen.getByLabelText('Email to seed'), {
+      target: { value: ' bill.huynh@gmail.com ' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
 
     const table = await screen.findByRole('table', { name: 'Demo world 3' });
-    expect(within(table).getByText('demo3@focusforest.test')).toBeTruthy();
+    expect(within(table).getByText('bill.huynh@gmail.com')).toBeTruthy();
+    expect(within(table).getByText('Google')).toBeTruthy();
+    expect(within(table).getAllByText('Password: focus-forest-demo').length).toBe(5);
     expect(within(table).getByText(/planting ceremony/)).toBeTruthy();
-    expect(within(table).getByText(/Resting quietly/)).toBeTruthy();
-    expect(within(table).getByText(/Keep my streak/)).toBeTruthy();
     expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
-      password: 'demo-password-1',
       reason: 'Demo',
+      emails: { main: 'bill.huynh@gmail.com' },
     });
   });
 
-  it('makes the accounts with the emails entered, leaving the blank ones to the API', async () => {
+  it('makes a world on a demo address when the email is left blank', async () => {
     const { fetch, requests } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
       'GET /admin/demo/worlds': ok({ items: [] }),
@@ -105,26 +134,13 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     });
     renderAdmin(<DemoPage />, { fetch });
     await screen.findByText('No demo world yet.');
-    fireEvent.change(screen.getByLabelText('Password for the demo accounts'), {
-      target: { value: 'demo-password-1' },
-    });
-    fireEvent.change(screen.getByLabelText('Email for Presenter (Bill)'), {
-      target: { value: ' bill.presenter@gmail.com ' },
-    });
-    fireEvent.change(screen.getByLabelText('Email for Friend (Khoa)'), {
-      target: { value: 'khoa@team.dev' },
-    });
     fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
     await waitFor(() =>
-      expect(requests.find((r) => r.method === 'POST')?.body).toEqual({
-        password: 'demo-password-1',
-        reason: 'Demo',
-        emails: { main: 'bill.presenter@gmail.com', 'friend-khoa': 'khoa@team.dev' },
-      }),
+      expect(requests.find((r) => r.method === 'POST')?.body).toEqual({ reason: 'Demo' }),
     );
   });
 
-  it('says when an email entered already has an account', async () => {
+  it('says when the email already has an account', async () => {
     const { fetch } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
       'GET /admin/demo/worlds': ok({ items: [] }),
@@ -139,29 +155,11 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     });
     renderAdmin(<DemoPage />, { fetch });
     await screen.findByText('No demo world yet.');
-    fireEvent.change(screen.getByLabelText('Password for the demo accounts'), {
-      target: { value: 'demo-password-1' },
-    });
-    fireEvent.change(screen.getByLabelText('Email for Presenter (Bill)'), {
+    fireEvent.change(screen.getByLabelText('Email to seed'), {
       target: { value: 'real@example.com' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
     expect(await screen.findByText(/real@example.com already has an account/)).toBeTruthy();
-  });
-
-  it('refuses a short password before sending', async () => {
-    const { fetch, requests } = api({
-      'GET /admin/demo/status': ok({ enabled: true }),
-      'GET /admin/demo/worlds': ok({ items: [] }),
-    });
-    renderAdmin(<DemoPage />, { fetch });
-    await screen.findByText('No demo world yet.');
-    fireEvent.change(screen.getByLabelText('Password for the demo accounts'), {
-      target: { value: 'short' },
-    });
-    fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
-    expect(await screen.findByText('Use at least 8 characters.')).toBeTruthy();
-    expect(requests.some((r) => r.method === 'POST')).toBe(false);
   });
 
   it('shows the API’s reason when a world cannot be made yet', async () => {
@@ -175,11 +173,22 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     });
     renderAdmin(<DemoPage />, { fetch });
     await screen.findByText('No demo world yet.');
-    fireEvent.change(screen.getByLabelText('Password for the demo accounts'), {
-      target: { value: 'demo-password-1' },
-    });
     fireEvent.click(screen.getByRole('button', { name: 'Make a demo world' }));
     expect(await screen.findByText(/8th of the month/)).toBeTruthy();
+  });
+
+  it('opens a fresh waiting room for the presenter', async () => {
+    const { fetch, requests } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': ok({ items: [WORLD] }),
+      'POST /admin/demo/worlds/3/room': ok({ opened: true }, 201),
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    fireEvent.click(await screen.findByRole('button', { name: 'Open a fresh waiting room' }));
+    expect(await screen.findByText(/Mai opened a new waiting room/)).toBeTruthy();
+    expect(
+      requests.some((r) => r.method === 'POST' && r.path === '/admin/demo/worlds/3/room'),
+    ).toBe(true);
   });
 
   it('sends a notification now and says what became of it', async () => {

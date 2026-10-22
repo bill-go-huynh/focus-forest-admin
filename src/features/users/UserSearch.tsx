@@ -36,7 +36,7 @@ export function UserSearch() {
           placeholder="Email, name, or id"
           value={input}
           onChange={(event) => setInput(event.target.value)}
-          className="w-80 rounded border p-2 text-sm"
+          className="w-80 rounded-lg border border-line p-2 text-sm"
         />
         <Button type="submit">Search</Button>
       </form>

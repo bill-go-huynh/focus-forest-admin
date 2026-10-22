@@ -127,7 +127,7 @@ export function CompensationGrant({ userId }: { userId: string }) {
           </label>
           <select
             id={`${id}-kind`}
-            className="rounded border px-2 py-1 text-sm"
+            className="rounded-lg border border-line px-2 py-1 text-sm"
             value={kind}
             onChange={(e) => setKind(e.target.value as GrantKind)}
           >
@@ -144,7 +144,7 @@ export function CompensationGrant({ userId }: { userId: string }) {
           </label>
           <input
             id={`${id}-item`}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className="w-full rounded-lg border border-line px-2 py-1 text-sm"
             value={itemId}
             onChange={(e) => setItemId(e.target.value)}
           />

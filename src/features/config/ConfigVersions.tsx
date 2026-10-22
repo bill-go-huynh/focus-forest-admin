@@ -132,7 +132,7 @@ function VersionReview({ version, onActivated }: { version: number; onActivated:
       )}
 
       <h3 className="mb-2 mt-4 text-sm font-semibold">Sample months</h3>
-      <p className="mb-2 text-xs text-neutral-600">
+      <p className="mb-2 text-xs text-muted">
         Each sample month grown with the active rules, then with these (active → proposed).
       </p>
       {preview.isError ? (
@@ -234,15 +234,15 @@ function ProposalForm({
   };
 
   const label = 'block text-xs font-medium';
-  const input = 'w-full rounded border px-2 py-1 text-sm';
+  const input = 'w-full rounded-lg border border-line px-2 py-1 text-sm';
   return (
     <form
       aria-label="Propose a version"
       onSubmit={(e) => void submit(e)}
-      className="my-4 max-w-3xl space-y-3 rounded border p-4"
+      className="my-4 max-w-3xl space-y-3 rounded-lg border border-line p-4"
     >
       <h3 className="text-sm font-semibold">Propose a version</h3>
-      <p className="text-xs text-neutral-600">
+      <p className="text-xs text-muted">
         The whole configuration, key by key. It is checked when proposed and changes nothing until
         activated.
       </p>
@@ -283,7 +283,7 @@ function ProposalForm({
       {jsonError ? (
         <p
           role="alert"
-          className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-900"
+          className="rounded-lg border border-line border-danger bg-danger-soft p-3 text-sm text-danger"
         >
           {jsonError}
         </p>

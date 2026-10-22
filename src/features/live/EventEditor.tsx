@@ -264,7 +264,7 @@ export function EventEditor({
 
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">Community Tree</h3>
-        {lock ? <p className="text-xs text-neutral-600">{LOCKED}</p> : null}
+        {lock ? <p className="text-xs text-muted">{LOCKED}</p> : null}
         <CheckboxField
           label="This event grows a Community Tree"
           checked={tree !== null}
@@ -329,7 +329,7 @@ export function EventEditor({
         </label>
         <input
           id={`${id}-reason`}
-          className="w-full rounded border px-2 py-1 text-sm"
+          className="w-full rounded-lg border border-line px-2 py-1 text-sm"
           value={reason}
           onChange={(e) => setReason(e.target.value)}
         />

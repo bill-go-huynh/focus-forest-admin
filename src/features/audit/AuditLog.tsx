@@ -60,7 +60,7 @@ export function AuditLog() {
             </label>
             <input
               id={`${id}-${field.name}`}
-              className="w-full rounded border px-2 py-1 text-sm"
+              className="w-full rounded-lg border border-line px-2 py-1 text-sm"
               placeholder={field.placeholder}
               value={draft[field.name] ?? ''}
               onChange={(e) => setDraft((old) => ({ ...old, [field.name]: e.target.value }))}

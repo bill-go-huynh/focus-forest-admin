@@ -40,7 +40,7 @@ export function LivePage() {
             role="tab"
             aria-selected={each === tab}
             onClick={() => setTab(each)}
-            className={`rounded px-3 py-1 text-sm ${each === tab ? 'bg-neutral-900 text-white' : 'border'}`}
+            className={`rounded px-3 py-1 text-sm ${each === tab ? 'bg-forest text-white' : 'border'}`}
           >
             {label}
           </button>
@@ -102,7 +102,7 @@ function EventsPanel({ events }: { events: LiveEventSummary[] }) {
           </h2>
           <div className="grid grid-cols-3 gap-3">
             {calendar.map((month) => (
-              <div key={month.key} className="rounded border p-2">
+              <div key={month.key} className="rounded-lg border border-line p-2">
                 <h3 className="text-sm font-semibold">{month.label}</h3>
                 <ul className="text-sm">
                   {month.events.map((event) => (
@@ -116,7 +116,7 @@ function EventsPanel({ events }: { events: LiveEventSummary[] }) {
       ) : null}
       {creating ? (
         <div className="fixed inset-0 overflow-y-auto bg-black/30 p-4">
-          <div className="mx-auto max-w-3xl rounded bg-white p-4 text-neutral-900 shadow">
+          <div className="mx-auto max-w-3xl rounded bg-surface p-4 text-ink shadow">
             <h2 className="mb-3 text-base font-semibold">New event</h2>
             <EventEditor
               title="New event"

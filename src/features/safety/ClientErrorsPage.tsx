@@ -56,7 +56,7 @@ export function ClientErrorsPage() {
         </label>
         <select
           id={id}
-          className="w-full rounded border px-2 py-1 text-sm"
+          className="w-full rounded-lg border border-line px-2 py-1 text-sm"
           value={days}
           onChange={(e) => setDays(Number(e.target.value))}
         >

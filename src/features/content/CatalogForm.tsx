@@ -59,7 +59,10 @@ export function CatalogForm({
     const fieldId = `${id}-${field.name}`;
     const value = values[field.name];
     const set = (next: Value) => setValues((old) => ({ ...old, [field.name]: next }));
-    const common = { id: fieldId, className: 'w-full rounded border px-2 py-1 text-sm' };
+    const common = {
+      id: fieldId,
+      className: 'w-full rounded-lg border border-line px-2 py-1 text-sm',
+    };
     let control;
     if (field.type === 'select') {
       control = (
@@ -120,7 +123,7 @@ export function CatalogForm({
       <form
         aria-label={title}
         onSubmit={(event) => void submit(event)}
-        className="w-full max-w-lg space-y-3 rounded bg-white p-4 text-neutral-900 shadow"
+        className="w-full max-w-lg space-y-3 rounded bg-surface p-4 text-ink shadow"
       >
         <h2 className="text-base font-semibold">{title}</h2>
         <div className="grid grid-cols-2 gap-3">{fields.map(input)}</div>
@@ -130,7 +133,7 @@ export function CatalogForm({
           </label>
           <input
             id={`${id}-reason`}
-            className="w-full rounded border px-2 py-1 text-sm"
+            className="w-full rounded-lg border border-line px-2 py-1 text-sm"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />

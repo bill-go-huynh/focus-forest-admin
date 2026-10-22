@@ -55,7 +55,7 @@ export function IntegrityPage() {
       ) : (
         <div className="space-y-4">
           {flags.data.items.map(({ user, flags: list }) => (
-            <section key={user.id} className="rounded border p-3">
+            <section key={user.id} className="rounded-lg border border-line p-3">
               <div className="mb-2 flex items-center justify-between gap-3">
                 <h2 className="text-sm font-semibold">{personLabel(user)}</h2>
                 <Button

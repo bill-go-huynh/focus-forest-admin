@@ -39,7 +39,7 @@ export function CheckpointReport() {
             type="date"
             value={from}
             onChange={(event) => setFrom(event.target.value)}
-            className="rounded border p-1"
+            className="rounded-lg border border-line p-1"
           />
         </label>
         <label className="flex flex-col">
@@ -48,7 +48,7 @@ export function CheckpointReport() {
             type="date"
             value={to}
             onChange={(event) => setTo(event.target.value)}
-            className="rounded border p-1"
+            className="rounded-lg border border-line p-1"
           />
         </label>
         <Button type="submit" disabled={!from || !to}>

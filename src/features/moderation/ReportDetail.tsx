@@ -167,7 +167,7 @@ export function ReportDetail() {
               id={`${formId}-action`}
               value={action}
               onChange={(event) => setAction(event.target.value as ModerationAction | '')}
-              className="rounded border p-1.5"
+              className="rounded-lg border border-line p-1.5"
             >
               <option value="">Choose an action</option>
               {ACTIONS.map((value) => (
@@ -187,7 +187,7 @@ export function ReportDetail() {
                   onChange={(event) => setMessage(event.target.value)}
                   maxLength={500}
                   rows={3}
-                  className="w-full rounded border p-2"
+                  className="w-full rounded-lg border border-line p-2"
                 />
               </>
             ) : null}

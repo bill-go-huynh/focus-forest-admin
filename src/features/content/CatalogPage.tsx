@@ -54,7 +54,7 @@ export function CatalogPage() {
               setKind(each);
               setQuery('');
             }}
-            className={`rounded px-3 py-1 text-sm ${each === kind ? 'bg-neutral-900 text-white' : 'border'}`}
+            className={`rounded px-3 py-1 text-sm ${each === kind ? 'bg-forest text-white' : 'border'}`}
           >
             {KIND_LABELS[each].plural}
           </button>
@@ -66,7 +66,7 @@ export function CatalogPage() {
           type="search"
           aria-label={`Search ${label.plural.toLowerCase()}`}
           placeholder="Name or id"
-          className="rounded border px-2 py-1 text-sm"
+          className="rounded-lg border border-line px-2 py-1 text-sm"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
@@ -157,7 +157,7 @@ export function ArtworkPreview({ id }: { id: string }) {
     <div
       role="img"
       aria-label={`Artwork ${id} (placeholder)`}
-      className="flex h-10 w-10 items-center justify-center rounded bg-neutral-100 text-[8px] text-neutral-500"
+      className="flex h-10 w-10 items-center justify-center rounded bg-paper-2 text-[8px] text-muted"
     >
       {id.slice(0, 8)}
     </div>
