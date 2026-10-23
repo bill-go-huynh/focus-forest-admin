@@ -9,9 +9,14 @@ Product and admin docs live in the workspace (`../docs/`). Agent and implementat
 Requires Node.js 24 and npm 11.
 
 ```sh
+cp .env.example .env.local   # NEXT_PUBLIC_API_URL, no trailing slash
 npm install
-npm run dev        # http://localhost:3001
+npm run dev                  # http://localhost:3001
 ```
+
+The API must be running with `ADMIN_JWT_SECRET` set and this origin in `CORS_ORIGINS`. In development, sign in as `admin@focusforest.test` / `admin123`.
+
+Hosted on Vercel: set `NEXT_PUBLIC_API_URL` there. It is read at build time, so changing it needs a redeploy.
 
 ## Scripts
 
