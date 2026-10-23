@@ -50,6 +50,13 @@ const REASONS: Record<string, string> = {
   not_relevant: 'It no longer applies (for example, today’s goal is already met).',
   daily_limit: 'The daily limit was reached.',
   PushDisabled: 'The API sends no push: set PUSH_PROVIDER=expo.',
+  // Expo accepted the push, but Firebase did not deliver it (owner, 2026-10-23).
+  InvalidCredentials:
+    'Expo accepted it, but its Firebase key is refused. Upload a new FCM V1 service account key on expo.dev (Credentials).',
+  MismatchSenderId:
+    'Expo accepted it, but the app was built for another Firebase project than the FCM key. Build again with that project’s google-services.json.',
+  DeviceNotRegistered:
+    'The phone no longer accepts this token (app reinstalled). Open the app signed in, so it registers again.',
 };
 
 const input = 'px-3 py-1.5 text-sm';
