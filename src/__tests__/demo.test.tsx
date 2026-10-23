@@ -43,6 +43,8 @@ const WORLD = {
       name: 'Bill',
       signIn: 'google',
       password: null,
+      devices: 0,
+      stage: 'seed',
     },
     {
       persona: 'comeback',
@@ -51,6 +53,8 @@ const WORLD = {
       name: 'An',
       signIn: 'password',
       password: 'focus-forest-demo',
+      devices: 0,
+      stage: 'seed',
     },
     {
       persona: 'recovery',
@@ -59,6 +63,8 @@ const WORLD = {
       name: 'Vy',
       signIn: 'password',
       password: 'focus-forest-demo',
+      devices: 0,
+      stage: 'seed',
     },
     {
       persona: 'friend-mai',
@@ -67,6 +73,8 @@ const WORLD = {
       name: 'Mai',
       signIn: 'password',
       password: 'focus-forest-demo',
+      devices: 0,
+      stage: 'seed',
     },
     {
       persona: 'friend-khoa',
@@ -75,6 +83,8 @@ const WORLD = {
       name: 'Khoa',
       signIn: 'password',
       password: 'focus-forest-demo',
+      devices: 0,
+      stage: 'seed',
     },
     {
       persona: 'friend-linh',
@@ -83,6 +93,8 @@ const WORLD = {
       name: 'Linh',
       signIn: 'password',
       password: 'focus-forest-demo',
+      devices: 0,
+      stage: 'seed',
     },
   ],
 };
@@ -176,6 +188,37 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     fireEvent.click(screen.getByRole('button', { name: 'Make today a rest day' }));
     await screen.findByText('Today is a rest day.');
     expect(requests.at(-1)?.path).toBe('/admin/demo/worlds/2/rest-today');
+  });
+
+  it('says whether the demo account is ready, and copies the emails (owner, 2026-10-23)', async () => {
+    const ready = {
+      ...WORLD,
+      accounts: WORLD.accounts.map((a) => (a.persona === 'main' ? { ...a, devices: 1 } : a)),
+    };
+    const writeText = vi.fn(() => Promise.resolve());
+    Object.assign(navigator, { clipboard: { writeText } });
+    const { fetch } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': ok({ items: [ready] }),
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    const account = await screen.findByRole('region', { name: 'Demo account' });
+    expect(within(account).getByText('Phone ready for notifications')).toBeTruthy();
+    expect(within(account).getByText('This month: Seed')).toBeTruthy();
+    fireEvent.click(within(account).getByRole('button', { name: 'Copy Linh’s email' }));
+    await waitFor(() =>
+      expect(writeText).toHaveBeenCalledWith('demo3-friend-linh@focusforest.test'),
+    );
+  });
+
+  it('says when no phone is registered yet', async () => {
+    const { fetch } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': ok({ items: [WORLD] }),
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    const account = await screen.findByRole('region', { name: 'Demo account' });
+    expect(within(account).getByText(/No phone yet/)).toBeTruthy();
   });
 
   it('makes a world on a demo address when the email is left blank', async () => {

@@ -179,6 +179,8 @@ function World({ worlds }: { worlds: DemoWorld[] }) {
                   ? 'On the phone: Sign in, then Continue with Google with this email.'
                   : `On the phone: Sign in with this email and the password ${main?.password ?? ''}.`}
               </p>
+              {main ? <Readiness devices={main.devices} stage={main.stage} /> : null}
+              {main ? <CopyButton label="Copy the demo email" text={main.email} /> : null}
             </div>
             {worlds.length > 1 ? (
               <div>
@@ -209,6 +211,7 @@ function World({ worlds }: { worlds: DemoWorld[] }) {
               <p className="font-medium">{`Second phone (emulator): ${linh.name}, a friend`}</p>
               <p className="font-mono text-xs">{linh.email}</p>
               <p className="text-xs text-ink-2">{`Password ${linh.password ?? ''}`}</p>
+              <CopyButton label={`Copy ${linh.name}’s email`} text={linh.email} />
             </div>
           ) : null}
           <ul className="mt-3 list-disc space-y-0.5 pl-5 text-sm text-ink-2">
@@ -421,5 +424,56 @@ function NotifyActions({ world }: { world: DemoWorld }) {
       </div>
       {line}
     </div>
+  );
+}
+
+const STAGES: Record<string, string> = {
+  seed: 'Seed',
+  sprout: 'Sprout',
+  young_tree: 'Young tree',
+  growing_tree: 'Growing tree',
+  mature_tree: 'Mature tree',
+  blooming_tree: 'Blooming tree',
+  final_form: 'Final form',
+};
+
+/** Ready to show? A phone for notifications, and this month's tree (owner, 2026-10-23). */
+function Readiness({ devices, stage }: { devices: number; stage: string | null }) {
+  return (
+    <div className="flex flex-wrap gap-2 pt-1 text-xs">
+      <span
+        className={`rounded-full px-2.5 py-1 font-medium ${
+          devices > 0 ? 'bg-forest-soft text-forest-deep' : 'bg-amber-soft text-amber'
+        }`}
+      >
+        {devices > 0
+          ? 'Phone ready for notifications'
+          : 'No phone yet: sign in on it and turn a notification on'}
+      </span>
+      {stage ? (
+        <span className="rounded-full bg-paper-2 px-2.5 py-1 font-medium">{`This month: ${
+          STAGES[stage] ?? stage
+        }`}</span>
+      ) : null}
+    </div>
+  );
+}
+
+/** Copies a value, and says so for a moment. */
+function CopyButton({ label, text }: { label: string; text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      className="mt-1 text-xs font-medium text-forest-strong underline-offset-2 hover:underline"
+      onClick={() => {
+        void navigator.clipboard?.writeText(text).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        });
+      }}
+    >
+      {copied ? 'Copied' : label}
+    </button>
   );
 }

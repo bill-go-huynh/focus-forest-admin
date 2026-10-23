@@ -138,6 +138,23 @@ describe('dashboard (CR.5)', () => {
     expect(screen.getByTestId('stat-activeUsersLast7Days').textContent).toContain('9');
   });
 
+  it('leads with the headline numbers, in words and hours (owner, 2026-10-23)', async () => {
+    renderAdmin(<Dashboard />, { fetch: api({ 'GET /admin/dashboard': ok(DASHBOARD) }).fetch });
+    expect((await screen.findByTestId('stat-totalUsers')).textContent).toContain('128');
+    expect(screen.getByTestId('stat-focusMinutesToday').textContent).toContain('5 h 50 min');
+    expect(screen.getByTestId('stat-focusMinutesLast7Days').textContent).toContain('37 h 55 min');
+    expect(screen.getByTestId('stat-openRooms').textContent).toContain('3');
+    expect(screen.getByTestId('stat-notificationsSentToday').textContent).toContain('21');
+  });
+
+  it('charts the last 14 days, each day readable on its own', async () => {
+    renderAdmin(<Dashboard />, { fetch: api({ 'GET /admin/dashboard': ok(DASHBOARD) }).fetch });
+    const chart = await screen.findByRole('list', { name: 'Focus in the last 14 days' });
+    const bars = within(chart).getAllByRole('listitem');
+    expect(bars).toHaveLength(14);
+    expect(bars.at(-1)!.getAttribute('aria-label')).toBe('8 Oct: 5 h 50 min, 14 sessions');
+  });
+
   it('shows an error with a retry', async () => {
     let calls = 0;
     const net = api({

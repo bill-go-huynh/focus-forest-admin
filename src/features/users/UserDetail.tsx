@@ -2,7 +2,7 @@
 
 import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import {
@@ -11,6 +11,7 @@ import {
   ErrorMessage,
   Loading,
   PageTitle,
+  Panel,
   SectionTitle,
   Table,
 } from '../../components/ui';
@@ -70,60 +71,78 @@ export function UserDetail() {
   return (
     <>
       <PageTitle>{profile.email}</PageTitle>
-      <dl className="grid max-w-3xl grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm">
-        <dt>Status</dt>
-        <dd>{statusLabel(profile.status)}</dd>
-        <dt>Username</dt>
-        <dd>{profile.username ? `@${profile.username}` : '—'}</dd>
-        <dt>Name</dt>
-        <dd>{profile.displayName ?? '—'}</dd>
-        <dt>Bio</dt>
-        <dd>{profile.bio ?? '—'}</dd>
-        <dt>Joined</dt>
-        <dd>{instantLabel(profile.joinedAt)}</dd>
-        <dt>Time zone</dt>
-        <dd>{profile.timezone ?? '—'}</dd>
-        <dt>Usage data</dt>
-        <dd>{detail.shareUsageData ? 'Shared' : 'Not shared'}</dd>
-      </dl>
+      {/* Owner, 2026-10-23: the person at a glance, then one card per part. */}
+      <Panel>
+        <div className="flex flex-wrap items-center gap-4">
+          <div
+            aria-hidden="true"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-forest-soft font-display text-2xl text-forest-deep"
+          >
+            {(profile.displayName ?? profile.email).slice(0, 1).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-lg font-semibold">{profile.displayName ?? '—'}</p>
+            <p className="text-sm text-ink-2">{profile.username ? `@${profile.username}` : '—'}</p>
+          </div>
+          <span
+            className={`rounded-full px-3 py-1 text-xs font-medium ${
+              profile.status === 'active'
+                ? 'bg-forest-soft text-forest-deep'
+                : 'bg-amber-soft text-amber'
+            }`}
+          >
+            {statusLabel(profile.status)}
+          </span>
+        </div>
+        <dl className="mt-4 grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
+          <Fact label="Bio">{profile.bio ?? '—'}</Fact>
+          <Fact label="Joined">{instantLabel(profile.joinedAt)}</Fact>
+          <Fact label="Time zone">{profile.timezone ?? '—'}</Fact>
+          <Fact label="Usage data">{detail.shareUsageData ? 'Shared' : 'Not shared'}</Fact>
+        </dl>
+      </Panel>
 
-      <SectionTitle>Lifetime</SectionTitle>
-      <dl className="grid max-w-3xl grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm">
-        <dt>Focused</dt>
-        <dd>{duration(detail.lifetime.focusedMilliseconds)}</dd>
-        <dt>Counted sessions</dt>
-        <dd>{detail.lifetime.sessionCount}</dd>
-        <dt>Monthly trees</dt>
-        <dd>{detail.lifetime.archivedTreeCount}</dd>
-        <dt>Streak</dt>
-        <dd>
-          {detail.lifetime.currentStreak === null
-            ? 'No time zone'
-            : `${plural(detail.lifetime.currentStreak, 'day')} now, longest ${plural(detail.lifetime.longestStreak ?? 0, 'day')}`}
-        </dd>
-        <dt>Current tree</dt>
-        <dd>
-          {detail.currentTree
-            ? `${stageLabel(detail.currentTree.stage)} · ${speciesLabel(detail.currentTree.species)} · fullness ${detail.currentTree.fullnessLevel}, blossoms ${detail.currentTree.blossomLevel}, richness ${detail.currentTree.richnessTier} (${monthLabel(detail.currentTree)})`
-            : 'No growing tree'}
-        </dd>
-        <dt>Rewards</dt>
-        <dd>
-          {`${plural(detail.rewards.badges, 'badge')} · ${plural(detail.rewards.species, 'species', 'species')} · ${plural(detail.rewards.cosmetics, 'cosmetic')}`}
-        </dd>
-      </dl>
+      <div className="mt-6 grid gap-4 lg:grid-cols-2">
+        <Panel>
+          <h2 className="text-base font-semibold">Lifetime</h2>
+          <div className="mt-3 grid grid-cols-3 gap-3">
+            <Big label="Focused" value={duration(detail.lifetime.focusedMilliseconds)} />
+            <Big label="Counted sessions" value={String(detail.lifetime.sessionCount)} />
+            <Big label="Monthly trees" value={String(detail.lifetime.archivedTreeCount)} />
+          </div>
+          <dl className="mt-3 grid gap-y-1 text-sm">
+            <Fact label="Streak">
+              {detail.lifetime.currentStreak === null
+                ? 'No time zone'
+                : `${plural(detail.lifetime.currentStreak, 'day')} now, longest ${plural(detail.lifetime.longestStreak ?? 0, 'day')}`}
+            </Fact>
+          </dl>
+        </Panel>
 
-      <SectionTitle>Moderation</SectionTitle>
-      <dl className="grid max-w-3xl grid-cols-[12rem_1fr] gap-x-4 gap-y-1 text-sm">
-        <dt>Reports</dt>
-        <dd>{`${plural(detail.moderation.reportsAbout, 'report')} about this user, ${detail.moderation.openReportsAbout} open`}</dd>
-        <dt>Filed</dt>
-        <dd>{`${plural(detail.moderation.reportsFiled, 'report')} filed`}</dd>
-        <dt>Warnings</dt>
-        <dd>{plural(detail.moderation.warnings, 'warning')}</dd>
-        <dt>Blocks</dt>
-        <dd>{`Blocks ${plural(detail.moderation.blocking, 'user')} · blocked by ${plural(detail.moderation.blockedBy, 'user')}`}</dd>
-      </dl>
+        <Panel>
+          <h2 className="text-base font-semibold">This month’s tree and rewards</h2>
+          <dl className="mt-3 grid gap-y-2 text-sm">
+            <Fact label="Current tree">
+              {detail.currentTree
+                ? `${stageLabel(detail.currentTree.stage)} · ${speciesLabel(detail.currentTree.species)} · fullness ${detail.currentTree.fullnessLevel}, blossoms ${detail.currentTree.blossomLevel}, richness ${detail.currentTree.richnessTier} (${monthLabel(detail.currentTree)})`
+                : 'No growing tree'}
+            </Fact>
+            <Fact label="Rewards">
+              {`${plural(detail.rewards.badges, 'badge')} · ${plural(detail.rewards.species, 'species', 'species')} · ${plural(detail.rewards.cosmetics, 'cosmetic')}`}
+            </Fact>
+          </dl>
+        </Panel>
+
+        <Panel>
+          <h2 className="text-base font-semibold">Moderation</h2>
+          <dl className="mt-3 grid gap-y-1 text-sm">
+            <Fact label="Reports">{`${plural(detail.moderation.reportsAbout, 'report')} about this user, ${detail.moderation.openReportsAbout} open`}</Fact>
+            <Fact label="Filed">{`${plural(detail.moderation.reportsFiled, 'report')} filed`}</Fact>
+            <Fact label="Warnings">{plural(detail.moderation.warnings, 'warning')}</Fact>
+            <Fact label="Blocks">{`Blocks ${plural(detail.moderation.blocking, 'user')} · blocked by ${plural(detail.moderation.blockedBy, 'user')}`}</Fact>
+          </dl>
+        </Panel>
+      </div>
 
       <SectionTitle>Checkpoint activity</SectionTitle>
       <Checkpoint metrics={detail.checkpoint} />
@@ -260,6 +279,26 @@ function Checkpoint({ metrics }: { metrics: Detail['checkpoint'] }) {
           </tr>
         ))}
       </Table>
+    </div>
+  );
+}
+
+/** One label and its value, side by side on wide screens. */
+function Fact({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="grid grid-cols-[9rem_1fr] gap-x-3">
+      <dt className="text-muted">{label}</dt>
+      <dd>{children}</dd>
+    </div>
+  );
+}
+
+/** A headline number in a card. */
+function Big({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl bg-paper-2 px-3 py-2">
+      <p className="text-xs text-muted">{label}</p>
+      <p className="text-xl font-semibold">{value}</p>
     </div>
   );
 }

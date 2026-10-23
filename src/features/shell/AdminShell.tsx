@@ -45,7 +45,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const { admin } = session;
   return (
     <div className="flex min-h-screen bg-paper">
-      <aside className="sticky top-0 flex h-screen w-60 shrink-0 flex-col bg-forest-deep px-4 py-6 text-sm text-[#e7efe5]">
+      <aside className="sticky top-0 flex h-screen w-52 shrink-0 lg:w-60 flex-col bg-forest-deep px-4 py-6 text-sm text-[#e7efe5]">
         <div className="mb-8 flex items-center gap-3 px-2">
           <LeafMark />
           <div>
@@ -83,7 +83,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
           </div>
         </div>
       </aside>
-      <main className="min-w-0 flex-1 px-10 py-8">
+      <main className="min-w-0 flex-1 px-5 py-6 lg:px-10 lg:py-8">
         <div className="mx-auto max-w-6xl">{children}</div>
       </main>
     </div>

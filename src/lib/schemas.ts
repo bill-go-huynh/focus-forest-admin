@@ -34,6 +34,13 @@ export const dashboardSchema = z.object({
   activeUsersLast7Days: count,
   /** D5.1: reports waiting for a moderator (open or in review). */
   openReports: count,
+  /** Owner, 2026-10-23: headline numbers and the last 14 UTC days. */
+  totalUsers: count,
+  focusMinutesToday: count,
+  focusMinutesLast7Days: count,
+  openRooms: count,
+  notificationsSentToday: count,
+  days: z.array(z.object({ date: z.string(), sessions: count, focusMinutes: count })),
   generatedAt: instant,
 });
 export type Dashboard = z.infer<typeof dashboardSchema>;
@@ -445,6 +452,9 @@ export const demoWorldSchema = z.object({
       /** An entered email signs in with Google; a demo address with the shared password. */
       signIn: z.enum(['google', 'password']),
       password: z.string().nullable(),
+      /** Owner, 2026-10-23: ready to show? Phones registered for push, this month's tree. */
+      devices: count,
+      stage: z.string().nullable(),
     }),
   ),
 });
