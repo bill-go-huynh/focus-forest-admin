@@ -302,6 +302,9 @@ export function createAdminApi(options: AdminApiOptions) {
       request(`/admin/demo/worlds/${world}/react`, null, { method: 'POST', body: { persona } }),
     demoFriendReady: (world: number) =>
       request(`/admin/demo/worlds/${world}/friend-ready`, null, { method: 'POST', body: {} }),
+    /** Deletes a whole world: its six accounts and everything they made (2026-10-23). */
+    deleteDemoWorld: (world: number, reason: string) =>
+      request(`/admin/demo/worlds/${world}`, null, { method: 'DELETE', body: { reason } }),
     demoRoom: (world: number) =>
       request(`/admin/demo/worlds/${world}/room`, null, { method: 'POST', body: {} }),
     // D5.1: focus rooms.

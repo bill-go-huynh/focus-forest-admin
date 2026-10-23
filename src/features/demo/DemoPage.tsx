@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useId, useState, type FormEvent, type ReactNode } from 'react';
 
+import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { Button, ErrorMessage, Loading, PageTitle, Panel } from '../../components/ui';
 import { AdminApiError } from '../../lib/api';
 import {
@@ -150,8 +151,11 @@ function DemoWorlds() {
 }
 
 function World({ worlds }: { worlds: DemoWorld[] }) {
+  const api = useAdminApi();
+  const queryClient = useQueryClient();
   const pickId = useId();
   const [chosen, setChosen] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const world = worlds.find((w) => w.id === chosen) ?? worlds[0]!;
   const main = world.accounts.find((a) => a.persona === 'main');
   const linh = world.accounts.find((a) => a.persona === 'friend-linh');
@@ -222,6 +226,29 @@ function World({ worlds }: { worlds: DemoWorld[] }) {
           <NotifyActions key={world.id} world={world} />
         </Panel>
       </div>
+      <Panel>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-ink-2">
+            Done with this demo? Delete the world to start clean: its email can seed a new one.
+          </p>
+          <Button tone="danger" onClick={() => setDeleting(true)}>
+            Delete this demo world
+          </Button>
+        </div>
+      </Panel>
+      {deleting ? (
+        <ConfirmDialog
+          title={`Delete demo world ${world.id}?`}
+          description={`This deletes all six accounts of the world (${main?.email ?? 'the demo account'}, its friends and followers) and everything they made: sessions, trees, follows, reactions, rooms and challenges. It cannot be undone.`}
+          action="Delete world"
+          onConfirm={async (reason) => {
+            await api.deleteDemoWorld(world.id, reason);
+            setChosen(null);
+            await queryClient.invalidateQueries({ queryKey: ['demo', 'worlds'] });
+          }}
+          onClose={() => setDeleting(false)}
+        />
+      ) : null}
     </div>
   );
 }

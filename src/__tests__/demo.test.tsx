@@ -229,6 +229,31 @@ describe('demo tools (DM.2)', { timeout: 15_000 }, () => {
     expect(await screen.findByText(/8th of the month/)).toBeTruthy();
   });
 
+  it('deletes a demo world after a confirmation with a reason (2026-10-23)', async () => {
+    let worlds: unknown[] = [WORLD];
+    const { fetch, requests } = api({
+      'GET /admin/demo/status': ok({ enabled: true }),
+      'GET /admin/demo/worlds': () => ok({ items: worlds }),
+      'DELETE /admin/demo/worlds/3': () => {
+        worlds = [];
+        return ok({ deleted: true });
+      },
+    });
+    renderAdmin(<DemoPage />, { fetch });
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete this demo world' }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/all six accounts/)).toBeTruthy();
+    fireEvent.change(within(dialog).getByLabelText(/Reason/), {
+      target: { value: 'Reset after the demo' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete world' }));
+    expect(await screen.findByText('No demo world yet.')).toBeTruthy();
+    expect(requests.find((r) => r.method === 'DELETE')).toMatchObject({
+      path: '/admin/demo/worlds/3',
+      body: { reason: 'Reset after the demo' },
+    });
+  });
+
   it('opens a fresh waiting room for the presenter', async () => {
     const { fetch, requests } = api({
       'GET /admin/demo/status': ok({ enabled: true }),
