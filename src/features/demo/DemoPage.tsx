@@ -23,7 +23,7 @@ import { useAdminApi } from '../../lib/session';
 /** What a fresh world gives the demo account (seeded by the API, spec/demo/PLAN.md). */
 const SEEDED = [
   'Last month’s tree: the planting ceremony and the recap on first open',
-  'This month’s tree, a 6-day streak and two earlier months in the forest',
+  'This month’s tree still a Seed, Pine owned to choose for it, and two earlier months in the forest',
   'Friends Mai, Khoa and Linh, followers, and reactions on the forest',
   'Two invitations from Linh: her waiting room and a challenge',
 ];
